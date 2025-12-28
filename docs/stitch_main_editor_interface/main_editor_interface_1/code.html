@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html class="dark" lang="es"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Interfaz Principal del Editor</title>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script>
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#2b8cee",
+                        "background-light": "#f6f7f8",
+                        "background-dark": "#101922",
+                        "panel-dark": "#182029",
+                        "border-dark": "#283039",
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #101922; 
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #283039; 
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #3e4852; 
+        }.ruler-x {
+            background-image: linear-gradient(90deg, #555 1px, transparent 1px);
+            background-size: 20px 100%;
+        }
+        .ruler-y {
+            background-image: linear-gradient(0deg, #555 1px, transparent 1px);
+            background-size: 100% 20px;
+        }
+    </style>
+</head>
+<body class="bg-background-dark text-white font-display overflow-hidden h-screen flex flex-col">
+<header class="h-14 shrink-0 border-b border-border-dark bg-panel-dark flex items-center justify-between px-4 z-50">
+<div class="flex items-center gap-6">
+<div class="flex items-center gap-3">
+<div class="size-8 bg-primary rounded flex items-center justify-center text-white">
+<span class="material-symbols-outlined text-[20px]">layers</span>
+</div>
+<h1 class="text-sm font-bold tracking-wide">DesignAI</h1>
+</div>
+<nav class="hidden md:flex items-center gap-1">
+<button class="px-3 py-1.5 text-xs text-gray-300 hover:bg-white/10 rounded transition-colors">Archivo</button>
+<button class="px-3 py-1.5 text-xs text-gray-300 hover:bg-white/10 rounded transition-colors">Editar</button>
+<button class="px-3 py-1.5 text-xs text-gray-300 hover:bg-white/10 rounded transition-colors">Imagen</button>
+<button class="px-3 py-1.5 text-xs text-gray-300 hover:bg-white/10 rounded transition-colors">Capa</button>
+<button class="px-3 py-1.5 text-xs text-gray-300 hover:bg-white/10 rounded transition-colors">Selección</button>
+<button class="px-3 py-1.5 text-xs text-gray-300 hover:bg-white/10 rounded transition-colors">Filtro</button>
+<button class="px-3 py-1.5 text-xs text-gray-300 hover:bg-white/10 rounded transition-colors">Vista</button>
+<button class="px-3 py-1.5 text-xs text-gray-300 hover:bg-white/10 rounded transition-colors">Ayuda</button>
+</nav>
+</div>
+<div class="flex items-center gap-3">
+<div class="flex items-center gap-2 bg-background-dark rounded-lg p-1 border border-border-dark">
+<span class="material-symbols-outlined text-gray-400 text-[18px] ml-1">cloud_done</span>
+<span class="text-xs text-gray-400 pr-2">Guardado</span>
+</div>
+<button class="h-8 px-4 bg-primary hover:bg-primary/90 text-white text-xs font-bold rounded flex items-center gap-2 transition-colors">
+<span>Exportar</span>
+<span class="material-symbols-outlined text-[16px]">download</span>
+</button>
+<div class="size-8 rounded-full bg-gradient-to-br from-purple-500 to-blue-500 border border-white/20" data-alt="Avatar del Usuario"></div>
+</div>
+</header>
+<div class="flex flex-1 overflow-hidden">
+<aside class="w-14 shrink-0 bg-panel-dark border-r border-border-dark flex flex-col items-center py-4 gap-2 z-40 overflow-y-auto">
+<button class="group relative flex items-center justify-center size-10 rounded hover:bg-white/10 text-primary">
+<span class="material-symbols-outlined text-[20px]">near_me</span> 
+<div class="absolute left-full ml-2 px-2 py-1 bg-black text-xs rounded opacity-0 group-hover:opacity-100 whitespace-nowrap z-50 pointer-events-none">Mover (V)</div>
+</button>
+<button class="group relative flex items-center justify-center size-10 rounded hover:bg-white/10 text-gray-400">
+<span class="material-symbols-outlined text-[20px]">check_box_outline_blank</span> 
+<div class="absolute left-full ml-2 px-2 py-1 bg-black text-xs rounded opacity-0 group-hover:opacity-100 whitespace-nowrap z-50 pointer-events-none">Selección Rectangular (M)</div>
+<span class="absolute bottom-1 right-1 w-1 h-1 bg-gray-500 rounded-full"></span> 
+</button>
+<button class="group relative flex items-center justify-center size-10 rounded hover:bg-white/10 text-gray-400">
+<span class="material-symbols-outlined text-[20px]">gesture</span> 
+<div class="absolute left-full ml-2 px-2 py-1 bg-black text-xs rounded opacity-0 group-hover:opacity-100 whitespace-nowrap z-50 pointer-events-none">Lazo (L)</div>
+</button>
+<div class="w-8 h-px bg-border-dark my-1"></div>
+<button class="group relative flex items-center justify-center size-10 rounded bg-gradient-to-tr from-purple-900/40 to-blue-900/40 border border-primary/30 text-primary hover:text-white shadow-[0_0_15px_rgba(43,140,238,0.2)]">
+<span class="material-symbols-outlined text-[20px] fill-current">auto_fix_high</span>
+<div class="absolute left-full ml-2 px-2 py-1 bg-primary text-white text-xs rounded opacity-0 group-hover:opacity-100 whitespace-nowrap z-50 pointer-events-none shadow-lg">Segmentación IA</div>
+</button>
+<div class="w-8 h-px bg-border-dark my-1"></div>
+<button class="group relative flex items-center justify-center size-10 rounded hover:bg-white/10 text-gray-400">
+<span class="material-symbols-outlined text-[20px]">crop</span>
+<div class="absolute left-full ml-2 px-2 py-1 bg-black text-xs rounded opacity-0 group-hover:opacity-100 whitespace-nowrap z-50 pointer-events-none">Recortar (C)</div>
+</button>
+<button class="group relative flex items-center justify-center size-10 rounded hover:bg-white/10 text-gray-400">
+<span class="material-symbols-outlined text-[20px]">colorize</span> 
+<div class="absolute left-full ml-2 px-2 py-1 bg-black text-xs rounded opacity-0 group-hover:opacity-100 whitespace-nowrap z-50 pointer-events-none">Cuentagotas (I)</div>
+</button>
+<button class="group relative flex items-center justify-center size-10 rounded hover:bg-white/10 text-gray-400">
+<span class="material-symbols-outlined text-[20px]">brush</span>
+<div class="absolute left-full ml-2 px-2 py-1 bg-black text-xs rounded opacity-0 group-hover:opacity-100 whitespace-nowrap z-50 pointer-events-none">Pincel (B)</div>
+</button>
+<button class="group relative flex items-center justify-center size-10 rounded hover:bg-white/10 text-gray-400">
+<span class="material-symbols-outlined text-[20px]">ink_eraser</span> 
+<div class="absolute left-full ml-2 px-2 py-1 bg-black text-xs rounded opacity-0 group-hover:opacity-100 whitespace-nowrap z-50 pointer-events-none">Borrador (E)</div>
+</button>
+<button class="group relative flex items-center justify-center size-10 rounded hover:bg-white/10 text-gray-400">
+<span class="material-symbols-outlined text-[20px]">title</span> 
+<div class="absolute left-full ml-2 px-2 py-1 bg-black text-xs rounded opacity-0 group-hover:opacity-100 whitespace-nowrap z-50 pointer-events-none">Texto (T)</div>
+</button>
+<button class="group relative flex items-center justify-center size-10 rounded hover:bg-white/10 text-gray-400">
+<span class="material-symbols-outlined text-[20px]">shapes</span> 
+<div class="absolute left-full ml-2 px-2 py-1 bg-black text-xs rounded opacity-0 group-hover:opacity-100 whitespace-nowrap z-50 pointer-events-none">Formas (U)</div>
+</button>
+<div class="flex-1"></div> 
+<button class="group relative flex items-center justify-center size-10 rounded hover:bg-white/10 text-gray-400">
+<span class="material-symbols-outlined text-[20px]">pan_tool</span> 
+<div class="absolute left-full ml-2 px-2 py-1 bg-black text-xs rounded opacity-0 group-hover:opacity-100 whitespace-nowrap z-50 pointer-events-none">Mano (H)</div>
+</button>
+<button class="group relative flex items-center justify-center size-10 rounded hover:bg-white/10 text-gray-400">
+<span class="material-symbols-outlined text-[20px]">zoom_in</span>
+<div class="absolute left-full ml-2 px-2 py-1 bg-black text-xs rounded opacity-0 group-hover:opacity-100 whitespace-nowrap z-50 pointer-events-none">Zoom (Z)</div>
+</button>
+<div class="size-8 rounded border border-border-dark mb-2 bg-[#111] relative overflow-hidden group cursor-pointer">
+<div class="absolute inset-0 bg-white group-hover:bg-gray-200"></div>
+<div class="absolute inset-1 bg-black group-hover:bg-gray-900 border border-gray-600"></div>
+<div class="absolute left-full ml-2 px-2 py-1 bg-black text-xs rounded opacity-0 group-hover:opacity-100 whitespace-nowrap z-50 pointer-events-none">Colores</div>
+</div>
+</aside>
+<main class="flex-1 flex flex-col min-w-0 bg-[#0c0c0c] relative">
+<div class="h-10 bg-panel-dark border-b border-border-dark flex items-center px-4 gap-4 overflow-x-auto whitespace-nowrap no-scrollbar">
+<div class="flex items-center gap-2 pr-4 border-r border-border-dark">
+<span class="material-symbols-outlined text-primary text-[18px]">near_me</span>
+<span class="text-xs font-medium text-gray-300">Herramienta Mover</span>
+</div>
+<div class="flex items-center gap-2">
+<input class="rounded bg-background-dark border-border-dark text-primary focus:ring-offset-0 focus:ring-0 w-4 h-4" id="auto-select" type="checkbox"/>
+<label class="text-xs text-gray-400 cursor-pointer select-none" for="auto-select">Selección auto.</label>
+</div>
+<div class="h-4 w-px bg-border-dark mx-1"></div>
+<div class="flex items-center gap-2">
+<label class="text-xs text-gray-400">Capa:</label>
+<select class="bg-background-dark border-border-dark text-white text-xs rounded py-1 pl-2 pr-6 focus:ring-0 focus:border-primary">
+<option>Capa</option>
+<option>Grupo</option>
+</select>
+</div>
+<div class="flex-1"></div>
+<div class="flex items-center gap-3">
+<button class="p-1 hover:bg-white/10 rounded text-gray-400" title="Alinear Izquierda"><span class="material-symbols-outlined text-[18px]">align_horizontal_left</span></button>
+<button class="p-1 hover:bg-white/10 rounded text-gray-400" title="Alinear Centro"><span class="material-symbols-outlined text-[18px]">align_horizontal_center</span></button>
+<button class="p-1 hover:bg-white/10 rounded text-gray-400" title="Alinear Derecha"><span class="material-symbols-outlined text-[18px]">align_horizontal_right</span></button>
+</div>
+</div>
+<div class="flex-1 relative overflow-hidden flex flex-col">
+<div class="h-6 bg-panel-dark border-b border-border-dark flex w-full relative shrink-0">
+<div class="w-6 h-6 border-r border-border-dark bg-panel-dark shrink-0 z-20"></div>
+<div class="flex-1 relative ruler-x opacity-50"></div>
+</div>
+<div class="flex-1 flex relative overflow-auto">
+<div class="w-6 bg-panel-dark border-r border-border-dark h-full relative shrink-0 ruler-y opacity-50"></div>
+<div class="flex-1 relative min-w-[800px] min-h-[600px] flex items-center justify-center p-20">
+<div class="relative w-[800px] h-[600px] bg-white shadow-2xl">
+<div class="absolute inset-0 z-0 opacity-20" style="background-image: linear-gradient(45deg, #ccc 25%, transparent 25%), linear-gradient(-45deg, #ccc 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #ccc 75%), linear-gradient(-45deg, transparent 75%, #ccc 75%); background-size: 20px 20px; background-position: 0 0, 0 10px, 10px -10px, -10px 0px;"></div>
+<div class="absolute inset-0 z-10 overflow-hidden">
+<img alt="Degradado líquido abstracto en azul y naranja" class="w-full h-full object-cover" data-alt="Fondo de degradado líquido abstracto" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC97NIz8KeFJRSfUHmQR8cvLHHaeyGrVnuO82Gop-cX3QcZAn4lGA8X_ooRRvH73VgTjyjnC4xIuUbJu1gQhHXpaDgojpqXAxdkoVU9octwynjTSZMGrO4dhSwsBoNiBHC-lwSPeQBZweFRcNySmnMkCzeKZzmOkz12I3lhWUu8YAENwhqznHZiTd4zg88GBY72CqMD61IKkQPL5wmjyVyh2n60e0xDwLupxqJ7o3OHzhOHlr2oBOVLaTRmoN6Ka_DFSfCsScRU2MH2"/>
+<div class="absolute top-[20%] left-[25%] w-[50%] h-[60%] border-2 border-primary cursor-move group/selection">
+<div class="absolute -top-1 -left-1 size-2 bg-white border border-primary"></div>
+<div class="absolute -top-1 -right-1 size-2 bg-white border border-primary"></div>
+<div class="absolute -bottom-1 -left-1 size-2 bg-white border border-primary"></div>
+<div class="absolute -bottom-1 -right-1 size-2 bg-white border border-primary"></div>
+<div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 size-2 bg-white border border-primary rounded-full"></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="absolute bottom-4 left-1/2 -translate-x-1/2 bg-panel-dark/90 backdrop-blur border border-border-dark rounded-full px-4 py-2 flex items-center gap-4 shadow-lg z-30">
+<button class="text-gray-400 hover:text-white"><span class="material-symbols-outlined text-[18px]">remove</span></button>
+<span class="text-xs font-medium w-12 text-center">100%</span>
+<button class="text-gray-400 hover:text-white"><span class="material-symbols-outlined text-[18px]">add</span></button>
+<div class="w-px h-4 bg-border-dark"></div>
+<span class="text-xs text-gray-400">1920 x 1080px</span>
+</div>
+</main>
+<aside class="w-80 shrink-0 bg-panel-dark border-l border-border-dark flex flex-col z-40">
+<div class="h-40 border-b border-border-dark p-3 flex flex-col gap-2">
+<div class="flex justify-between items-center">
+<span class="text-xs font-bold text-gray-400 uppercase tracking-wider">Histograma</span>
+<button class="text-gray-500 hover:text-white"><span class="material-symbols-outlined text-[16px]">more_horiz</span></button>
+</div>
+<div class="flex-1 bg-background-dark rounded border border-border-dark overflow-hidden relative">
+<div class="absolute bottom-0 left-0 right-0 h-full flex items-end gap-[1px] px-1 opacity-60">
+<div class="w-full bg-red-500/50 h-[30%]"></div>
+<div class="w-full bg-green-500/50 h-[45%]"></div>
+<div class="w-full bg-blue-500/50 h-[60%]"></div>
+</div>
+<div class="absolute bottom-0 left-0 right-0 h-full w-full" style="background: linear-gradient(180deg, transparent 40%, rgba(255,255,255,0.1) 100%);">
+<svg class="w-full h-full" preserveAspectRatio="none" viewBox="0 0 100 40">
+<path d="M0,40 L10,35 L20,38 L30,20 L40,25 L50,10 L60,15 L70,5 L80,18 L90,30 L100,40 Z" fill="white" fill-opacity="0.2"></path>
+</svg>
+</div>
+</div>
+</div>
+<div class="flex border-b border-border-dark">
+<button class="flex-1 py-3 text-xs font-bold text-gray-400 hover:text-white border-b-2 border-transparent">Ajustes</button>
+<button class="flex-1 py-3 text-xs font-bold text-white border-b-2 border-primary">Propiedades</button>
+</div>
+<div class="p-4 border-b border-border-dark flex flex-col gap-4">
+<div class="flex flex-col gap-1">
+<span class="text-xs text-gray-500 font-medium">Transformar</span>
+<div class="grid grid-cols-2 gap-2">
+<div class="flex items-center gap-2 bg-background-dark rounded border border-border-dark px-2 py-1.5">
+<span class="text-xs text-gray-500 font-mono">An</span>
+<span class="text-xs text-white">800</span>
+</div>
+<div class="flex items-center gap-2 bg-background-dark rounded border border-border-dark px-2 py-1.5">
+<span class="text-xs text-gray-500 font-mono">Al</span>
+<span class="text-xs text-white">600</span>
+</div>
+<div class="flex items-center gap-2 bg-background-dark rounded border border-border-dark px-2 py-1.5">
+<span class="text-xs text-gray-500 font-mono">X</span>
+<span class="text-xs text-white">0</span>
+</div>
+<div class="flex items-center gap-2 bg-background-dark rounded border border-border-dark px-2 py-1.5">
+<span class="text-xs text-gray-500 font-mono">Y</span>
+<span class="text-xs text-white">0</span>
+</div>
+</div>
+</div>
+<div class="flex flex-col gap-2">
+<span class="text-xs text-gray-500 font-medium">Apariencia</span>
+<div class="flex items-center justify-between">
+<span class="text-xs text-gray-300">Opacidad</span>
+<span class="text-xs text-gray-300">100%</span>
+</div>
+<input class="w-full h-1 bg-border-dark rounded-lg appearance-none cursor-pointer accent-primary" type="range" value="100"/>
+</div>
+</div>
+<div class="flex flex-col flex-1 min-h-0">
+<div class="flex items-center justify-between px-3 py-2 border-b border-border-dark bg-panel-dark">
+<span class="text-xs font-bold text-gray-300">Capas</span>
+<div class="flex gap-2">
+<button class="text-gray-500 hover:text-white" title="Nueva carpeta"><span class="material-symbols-outlined text-[16px]">create_new_folder</span></button>
+<button class="text-gray-500 hover:text-white" title="Nueva capa"><span class="material-symbols-outlined text-[16px]">add_box</span></button>
+<button class="text-gray-500 hover:text-white" title="Eliminar"><span class="material-symbols-outlined text-[16px]">delete</span></button>
+</div>
+</div>
+<div class="px-3 py-2 border-b border-border-dark flex gap-2">
+<select class="bg-background-dark border-border-dark text-white text-xs rounded py-1 pl-2 pr-6 w-24 focus:ring-0 focus:border-primary">
+<option>Normal</option>
+<option>Multiplicar</option>
+<option>Superponer</option>
+</select>
+<div class="flex gap-1 items-center flex-1 justify-end">
+<span class="text-xs text-gray-500">Op:</span>
+<input class="w-12 bg-background-dark border-border-dark text-white text-xs rounded py-1 px-1 text-center focus:ring-0 focus:border-primary" type="number" value="100"/>
+</div>
+</div>
+<div class="flex-1 overflow-y-auto">
+<div class="flex items-center gap-2 px-3 py-2 bg-primary/20 border-l-2 border-primary cursor-pointer hover:bg-primary/30 transition-colors">
+<button class="text-gray-300 hover:text-white"><span class="material-symbols-outlined text-[16px]">visibility</span></button>
+<div class="size-8 bg-gray-700 rounded overflow-hidden shrink-0 border border-gray-600">
+<div class="w-full h-full bg-gradient-to-br from-blue-500 to-transparent"></div>
+</div>
+<span class="text-xs font-medium text-white flex-1 truncate">Recorte del Sujeto</span>
+<span class="material-symbols-outlined text-[14px] text-primary" title="Generado por IA">auto_fix_high</span>
+</div>
+<div class="flex items-center gap-2 px-3 py-2 border-l-2 border-transparent hover:bg-white/5 cursor-pointer transition-colors group">
+<button class="text-gray-500 group-hover:text-gray-300"><span class="material-symbols-outlined text-[16px]">visibility</span></button>
+<div class="size-8 bg-black rounded overflow-hidden shrink-0 border border-border-dark flex items-center justify-center">
+<span class="material-symbols-outlined text-[18px] text-gray-400">text_fields</span>
+</div>
+<span class="text-xs font-normal text-gray-300 flex-1 truncate">Texto del Encabezado</span>
+<button class="opacity-0 group-hover:opacity-100 text-gray-500 hover:text-white"><span class="material-symbols-outlined text-[14px]">lock</span></button>
+</div>
+<div class="flex items-center gap-2 px-3 py-2 border-l-2 border-transparent hover:bg-white/5 cursor-pointer transition-colors group">
+<button class="text-gray-500 group-hover:text-gray-300"><span class="material-symbols-outlined text-[16px]">visibility</span></button>
+<div class="size-8 bg-gray-800 rounded overflow-hidden shrink-0 border border-border-dark">
+<img alt="Textura de degradado oscuro sutil" class="w-full h-full object-cover opacity-50" data-alt="Miniatura de capa de textura de degradado oscuro" src="https://lh3.googleusercontent.com/aida-public/AB6AXuD4rjsG33A0Cvp-m7OM8BpTvxkcnasMplmWsUIXh-QSZqIKBVqxgpXxJ63okq-MKgnHDSmQe_asqkAG8Z2PIcvtYw-XFtummguVzoMWOv_wB5pTR91T6EezXPK5ck1Y5iG_b3I5ADi3WkeGQ0CXTb5Lt8HjMt1ON3q35Ks2UsHY81pQ5z4a8WOdWar7TNZqY8p_VCp4nvJh6STwGvsFMWSM6GcFJsDifoZmL9TPh2XtqN_5_G4pRCJu6P_xXQLxgzVxQTsnzS19qrE-"/>
+</div>
+<span class="text-xs font-normal text-gray-300 flex-1 truncate">Resplandor de Fondo</span>
+</div>
+<div class="flex items-center gap-2 px-3 py-2 border-l-2 border-transparent hover:bg-white/5 cursor-pointer transition-colors group">
+<button class="text-gray-500 group-hover:text-gray-300"><span class="material-symbols-outlined text-[16px]">visibility</span></button>
+<div class="size-8 bg-white rounded overflow-hidden shrink-0 border border-border-dark"></div>
+<span class="text-xs font-normal text-gray-300 flex-1 truncate italic">Fondo</span>
+<span class="text-gray-500"><span class="material-symbols-outlined text-[14px]">lock</span></span>
+</div>
+</div>
+</div>
+</aside>
+</div>
+
+</body></html>

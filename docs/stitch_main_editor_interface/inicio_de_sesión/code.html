@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="es"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Clonación Photoshop - Inicio de Sesión</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#2b8cee",
+                        "background-light": "#f6f7f8",
+                        "background-dark": "#101922",
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark min-h-screen flex items-center justify-center relative overflow-hidden">
+<!-- Ambient Background Effects for "Creative Studio" feel -->
+<div class="absolute top-0 left-0 w-full h-full overflow-hidden z-0 pointer-events-none">
+<div class="absolute top-[-20%] left-[-10%] w-[600px] h-[600px] bg-primary/20 rounded-full blur-[120px] mix-blend-screen opacity-50"></div>
+<div class="absolute bottom-[-20%] right-[-10%] w-[500px] h-[500px] bg-purple-500/10 rounded-full blur-[100px] mix-blend-screen opacity-50"></div>
+</div>
+<!-- Main Content -->
+<div class="relative z-10 w-full max-w-[440px] px-4">
+<!-- Login Card -->
+<div class="bg-[#1c2127] border border-[#283039] rounded-2xl shadow-2xl p-8 flex flex-col gap-6 w-full">
+<!-- Header Section -->
+<div class="flex flex-col items-center gap-4 text-center">
+<!-- Logo Icon -->
+<div class="size-12 bg-gradient-to-br from-primary to-blue-600 rounded-xl flex items-center justify-center text-white shadow-lg shadow-primary/20">
+<span class="material-symbols-outlined text-[28px]">brush</span>
+</div>
+<div class="flex flex-col gap-1">
+<h1 class="text-white text-2xl font-bold tracking-tight">Iniciar Sesión</h1>
+<p class="text-[#9dabb9] text-sm font-normal">Accede a tu estudio creativo con IA</p>
+</div>
+</div>
+<!-- Form Section -->
+<form class="flex flex-col gap-4" onsubmit="event.preventDefault()">
+<!-- Email Field -->
+<div class="flex flex-col gap-1.5">
+<label class="text-white text-sm font-medium leading-normal ml-1">Correo Electrónico</label>
+<div class="relative">
+<div class="absolute left-4 top-1/2 -translate-y-1/2 text-[#9dabb9]">
+<span class="material-symbols-outlined text-[20px]">mail</span>
+</div>
+<input class="form-input flex w-full min-w-0 resize-none overflow-hidden rounded-xl text-white focus:outline-0 focus:ring-2 focus:ring-primary/50 border border-[#3b4754] bg-[#111418] focus:border-primary h-12 placeholder:text-[#5f6e7c] pl-11 pr-4 text-sm font-normal leading-normal transition-all" placeholder="ejemplo@correo.com" type="email"/>
+</div>
+</div>
+<!-- Password Field -->
+<div class="flex flex-col gap-1.5">
+<div class="flex justify-between items-center ml-1">
+<label class="text-white text-sm font-medium leading-normal">Contraseña</label>
+<a class="text-primary text-xs font-medium hover:text-blue-400 hover:underline transition-colors" href="#">¿Olvidaste tu contraseña?</a>
+</div>
+<div class="relative">
+<div class="absolute left-4 top-1/2 -translate-y-1/2 text-[#9dabb9]">
+<span class="material-symbols-outlined text-[20px]">lock</span>
+</div>
+<input class="form-input flex w-full min-w-0 resize-none overflow-hidden rounded-xl text-white focus:outline-0 focus:ring-2 focus:ring-primary/50 border border-[#3b4754] bg-[#111418] focus:border-primary h-12 placeholder:text-[#5f6e7c] pl-11 pr-4 text-sm font-normal leading-normal transition-all" placeholder="Ingresa tu contraseña" type="password"/>
+<button class="absolute right-4 top-1/2 -translate-y-1/2 text-[#9dabb9] hover:text-white transition-colors cursor-pointer" type="button">
+<span class="material-symbols-outlined text-[20px]">visibility_off</span>
+</button>
+</div>
+</div>
+<!-- Submit Button -->
+<button class="mt-2 flex items-center justify-center w-full h-12 bg-primary hover:bg-blue-600 text-white font-semibold rounded-xl transition-all shadow-lg shadow-primary/25 hover:shadow-primary/40 active:scale-[0.98]">
+                    Iniciar Sesión
+                </button>
+</form>
+<!-- Divider -->
+<div class="flex items-center gap-3 py-1">
+<div class="h-px flex-1 bg-[#283039]"></div>
+<p class="text-[#5f6e7c] text-xs font-medium">O continúa con</p>
+<div class="h-px flex-1 bg-[#283039]"></div>
+</div>
+<!-- Social Login -->
+<div class="grid grid-cols-2 gap-3">
+<button class="flex items-center justify-center gap-2 h-10 rounded-lg bg-[#283039] hover:bg-[#323b46] border border-transparent hover:border-[#3b4754] text-white transition-all text-sm font-medium">
+<svg class="w-5 h-5" fill="currentColor" viewbox="0 0 24 24"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"></path><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"></path><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"></path><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"></path></svg>
+                   Google
+                </button>
+<button class="flex items-center justify-center gap-2 h-10 rounded-lg bg-[#283039] hover:bg-[#323b46] border border-transparent hover:border-[#3b4754] text-white transition-all text-sm font-medium">
+<svg class="w-5 h-5 fill-white" viewbox="0 0 24 24"><path d="M16.365 1.43c0 1.14-.493 2.27-1.177 3.08-.744.9-1.99 1.57-2.987 1.57-.12 0-.23-.02-.3-.03-.01-.06-.04-.15-.04-.21.09-1.36.45-2.46 1.246-3.36C13.859 1.51 15.246.99 16.365 1.43zM11.033 6.337c1.694.057 2.854.918 3.517.918.661 0 1.717-1.003 3.044-.862.96.101 1.909.565 2.433 1.36-2.16 1.16-2.52 4.103-1.049 5.86 1.053 1.272 1.634 1.927 1.634 1.927-.751 1.838-2.606 5.87-4.757 5.808-.66-.019-1.127-.393-1.953-.393-.846 0-1.47.412-2.146.412-2.008-.057-3.69-3.23-4.55-5.908-1.576-4.437.29-8.498 3.827-9.123z"></path></svg>
+                   Apple
+                </button>
+</div>
+<!-- Footer -->
+<div class="flex items-center justify-center gap-2 text-sm text-[#9dabb9]">
+<p>¿No tienes una cuenta?</p>
+<a class="text-white font-medium hover:text-primary transition-colors" href="#">Regístrate ahora</a>
+</div>
+</div>
+<!-- Bottom branding -->
+<div class="mt-8 text-center">
+<p class="text-[#5f6e7c] text-xs">© 2024 Clonación Photoshop. Todos los derechos reservados.</p>
+</div>
+</div>
+</body></html>
