@@ -18,10 +18,11 @@ export async function POST(request: Request) {
 
     const body: AIDecomposeRequest = await request.json()
 
-    // Validate request
-    if (!body.imageBase64) {
+    // Validate request - accept both imageUrl and imageBase64
+    const imageSource = body.imageUrl || body.imageBase64
+    if (!imageSource) {
       return NextResponse.json(
-        { success: false, error: 'Image is required' },
+        { success: false, error: 'Image is required (imageUrl or imageBase64)' },
         { status: 400 }
       )
     }
@@ -30,14 +31,15 @@ export async function POST(request: Request) {
 
     // Prepare image URL or base64
     let imageInput: string
-    if (body.imageBase64.startsWith('data:')) {
-      // Convert base64 to data URI if needed
-      imageInput = body.imageBase64
-    } else if (body.imageBase64.startsWith('http')) {
-      imageInput = body.imageBase64
+    if (imageSource.startsWith('data:')) {
+      // Already a data URI
+      imageInput = imageSource
+    } else if (imageSource.startsWith('http')) {
+      // URL format
+      imageInput = imageSource
     } else {
       // Assume raw base64, add data URI prefix
-      imageInput = `data:image/png;base64,${body.imageBase64}`
+      imageInput = `data:image/png;base64,${imageSource}`
     }
 
     console.log(`[AI Decompose] Starting with ${layerCount} layers...`)

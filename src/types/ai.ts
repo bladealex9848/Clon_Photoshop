@@ -1,5 +1,6 @@
 export interface AIDecomposeRequest {
-  imageBase64: string
+  imageUrl?: string
+  imageBase64?: string
   layerCount: number
   instructions?: string
   outputFormat?: 'webp' | 'png'
