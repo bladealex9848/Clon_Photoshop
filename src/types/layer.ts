@@ -20,6 +20,8 @@ export interface Layer {
 
   // For raster layers
   imageData?: ImageData
+  imageUrl?: string // URL for remote or blob images
+  thumbnail?: string // URL for thumbnail preview
 
   // For text layers
   textContent?: string

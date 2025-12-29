@@ -25,14 +25,72 @@ export function CanvasContainer() {
   const [isPanning, setIsPanning] = useState(false)
   const [lastMousePos, setLastMousePos] = useState({ x: 0, y: 0 })
   const [isDrawing, setIsDrawing] = useState(false)
+  const [isDragging, setIsDragging] = useState(false)
 
   // Stores
-  const { getOrderedLayers, activeLayerId, getLayer } = useLayerStore()
+  const { getOrderedLayers, activeLayerId, getLayer, addLayer } = useLayerStore()
   const { activeTool, config, primaryColor, secondaryColor, setPrimaryColor } = useToolStore()
   const { zoom, panX, panY, setZoom, addPan } = useViewStore()
 
   const layers = getOrderedLayers()
   const canvasSize = { width: 1920, height: 1080 }
+
+  // Handle file drop
+  const handleFile = useCallback(async (file: File) => {
+    if (!file.type.startsWith('image/')) {
+      alert('Por favor arrastra solo archivos de imagen')
+      return
+    }
+
+    const layerId = `layer-${Date.now()}`
+    const layerName = file.name.replace(/\.[^/.]+$/, '')
+
+    // Crear la capa primero con imageUrl
+    const imageUrl = URL.createObjectURL(file)
+    addLayer({
+      id: layerId,
+      name: layerName,
+      type: 'raster',
+      visible: true,
+      locked: false,
+      opacity: 100,
+      blendMode: 'normal',
+      transform: { x: 0, y: 0, rotation: 0, scaleX: 1, scaleY: 1 },
+      imageUrl: imageUrl,
+    })
+
+    // Cargar la imagen en la capa usando el LayerEngine del CompositeRenderer
+    const compositor = compositorRef.current
+    if (compositor) {
+      await compositor.layerEngine.loadImageToLayer(layerId, imageUrl)
+    }
+
+    // No revocamos la URL porque la capa la necesita para mostrar la miniatura
+  }, [addLayer])
+
+  // Drag and drop handlers
+  const handleDragOver = useCallback((e: React.DragEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    setIsDragging(true)
+  }, [])
+
+  const handleDragLeave = useCallback((e: React.DragEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    setIsDragging(false)
+  }, [])
+
+  const handleDrop = useCallback((e: React.DragEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    setIsDragging(false)
+
+    const files = e.dataTransfer.files
+    if (files && files.length > 0) {
+      handleFile(files[0])
+    }
+  }, [handleFile])
 
   // Initialize canvas engine
   useEffect(() => {
@@ -67,6 +125,30 @@ export function CanvasContainer() {
 
     compositorRef.current.render(layers, layerOrder)
   }, [layers, layerOrder])
+
+  // Load images into LayerEngine when layers have imageUrl
+  useEffect(() => {
+    const compositor = compositorRef.current
+    if (!compositor) return
+
+    // Load images for layers that have imageUrl but haven't been loaded yet
+    layers.forEach(async (layer) => {
+      if (layer.imageUrl && layer.type === 'raster') {
+        // Check if this layer's canvas is empty by trying to get it
+        const layerCanvas = compositor.layerEngine.getLayerCanvas(layer.id)
+        const ctx = layerCanvas.getContext('2d')
+        if (ctx) {
+          // Try to get a pixel to check if canvas is empty
+          const pixel = ctx.getImageData(0, 0, 1, 1).data
+          // If completely transparent (all zeros), load the image
+          const isEmpty = pixel[0] === 0 && pixel[1] === 0 && pixel[2] === 0 && pixel[3] === 0
+          if (isEmpty) {
+            await compositor.layerEngine.loadImageToLayer(layer.id, layer.imageUrl)
+          }
+        }
+      }
+    })
+  }, [layers])
 
   // Get current tool instance
   const getCurrentTool = useCallback(() => {
@@ -130,11 +212,22 @@ export function CanvasContainer() {
   }, [getCanvasCoords])
 
   // Handle wheel zoom
-  const handleWheel = (e: React.WheelEvent) => {
+  const handleWheel = useCallback((e: WheelEvent) => {
     e.preventDefault()
     const delta = e.deltaY > 0 ? 0.9 : 1.1
     setZoom(Math.min(Math.max(zoom * delta, 0.1), 32))
-  }
+  }, [zoom, setZoom])
+
+  // Add wheel listener with passive: false
+  useEffect(() => {
+    const container = containerRef.current
+    if (!container) return
+
+    container.addEventListener('wheel', handleWheel, { passive: false })
+    return () => {
+      container.removeEventListener('wheel', handleWheel)
+    }
+  }, [handleWheel])
 
   // Handle mouse events
   const handleMouseDown = (e: React.MouseEvent) => {
@@ -270,12 +363,16 @@ export function CanvasContainer() {
         {/* Canvas Area */}
         <div
           ref={containerRef}
-          className="flex-1 canvas-container flex items-center justify-center"
-          onWheel={handleWheel}
+          className={`flex-1 canvas-container flex items-center justify-center transition-colors ${
+            isDragging ? 'bg-editor-accent/10' : ''
+          }`}
           onMouseDown={handleMouseDown}
           onMouseMove={handleMouseMove}
           onMouseUp={handleMouseUp}
           onMouseLeave={handleMouseUp}
+          onDragOver={handleDragOver}
+          onDragLeave={handleDragLeave}
+          onDrop={handleDrop}
           style={{ cursor: getCursor() }}
         >
           <div

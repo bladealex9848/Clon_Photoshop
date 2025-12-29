@@ -33,15 +33,37 @@ export function EditLayerModal({
     setPreviewUrl(null)
 
     try {
+      // Determinar cómo enviar la imagen según el tipo de URL
+      let requestBody: any = {
+        prompt: prompt.trim(),
+        guidance,
+        strength,
+      }
+
+      if (layerImageUrl.startsWith('blob:')) {
+        // Es una URL blob local (desarrollo), convertir a base64
+        const response = await fetch(layerImageUrl)
+        const blob = await response.blob()
+        const base64 = await new Promise<string>((resolve) => {
+          const reader = new FileReader()
+          reader.onloadend = () => resolve(reader.result as string)
+          reader.readAsDataURL(blob)
+        })
+        requestBody.imageBase64 = base64
+      } else if (layerImageUrl.startsWith('http://') || layerImageUrl.startsWith('https://')) {
+        // Es una URL pública (VPS/producción), enviar la URL directamente
+        requestBody.imageUrl = layerImageUrl
+      } else if (layerImageUrl.startsWith('data:')) {
+        // Ya es base64
+        requestBody.imageBase64 = layerImageUrl
+      } else {
+        throw new Error('Formato de imagen no soportado')
+      }
+
       const response = await fetch('/api/layers/edit', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          imageUrl: layerImageUrl,
-          prompt: prompt.trim(),
-          guidance,
-          strength,
-        }),
+        body: JSON.stringify(requestBody),
       })
 
       const data = await response.json()
