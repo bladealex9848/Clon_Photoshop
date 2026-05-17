@@ -26,6 +26,34 @@ Editor de imágenes estilo Photoshop construido con Next.js 15, React 19 y Canva
 - **IA**: Replicate (qwen/qwen-image-layered)
 - **Export**: JSZip, FileSaver
 
+## Alianza Cédula 360 y despliegue
+
+PhotoClone es parte del ecosistema bajo `photoshop.cedula360.tech`
+(commit `7a7ee9c`): autenticación local MariaDB (reemplaza Supabase),
+login **"Continuar con Cédula 360"** server-to-server contra la API
+real de Cédula 360 (`:3081`) + 2FA inline, panel `/admin` con RBAC y
+reCAPTCHA v3 fail-open. El editor permanece **público** (transformación
+aditiva).
+
+> **Estado:** la app **NO está desplegada/sirviendo todavía** —
+> `photoshop.cedula360.tech` da **502**; el `next build` corre en serie
+> (VPS compartido sensible a carga) y aún no termina.
+
+### Pendientes
+
+- Tras el build: iniciar `clon-photoshop` + `clon-photoshop-webhook`,
+  verificar y registrar el webhook de GitHub
+  (`https://photoshop.cedula360.tech/webhook`). Mientras no se registre,
+  `git push` no dispara deploy.
+- **Operador**: añadir `photoshop.cedula360.tech` a los dominios de la
+  llave reCAPTCHA de Cédula 360 en la consola de Google (mitigado por
+  fail-open `0.3`).
+- **Infra compartida**: serializar deploys por webhook / nice-cgroup
+  tras el incidente de carga del VPS (contenido; producción saludable).
+
+Detalle: [`docs/DESPLIEGUE-VPS-2026-05-16.md`](docs/DESPLIEGUE-VPS-2026-05-16.md)
+· [`CHANGELOG.md`](CHANGELOG.md).
+
 ## Requisitos
 
 - Node.js 18+

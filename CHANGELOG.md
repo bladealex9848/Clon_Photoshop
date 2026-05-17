@@ -38,6 +38,28 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 - Registro abierto retirado: acceso vía Cédula 360 o credenciales emitidas
   por un administrador.
 
+### Pendientes
+
+> **IMPORTANTE**: la app **NO está desplegada/sirviendo todavía** —
+> `photoshop.cedula360.tech` da **502**; el `next build` corre en serie
+> (VPS compartido sensible a carga) y aún no termina.
+
+- Tras el build: iniciar `clon-photoshop` + `clon-photoshop-webhook`,
+  verificar `127.0.0.1:3024` y que el dominio deje de dar 502.
+- **Registrar el webhook de GitHub** (`https://photoshop.cedula360.tech/webhook`,
+  HMAC SHA256). Mientras no esté registrado, `git push` **no** dispara
+  deploy (por eso es seguro pushear `7a7ee9c` + docs ahora).
+- **Operador**: añadir `photoshop.cedula360.tech` a los dominios de la
+  llave reCAPTCHA de Cédula 360 en la consola de Google (mitigado por
+  fail-open `0.3`).
+- Admin inicial `bladealex@gmail.com`; contraseña server-side en
+  `/root/.clon_photoshop_env` (no documentada). Cambiar tras 1er acceso.
+- **Infra compartida (transversal)**: serializar deploys por webhook /
+  nice-cgroup tras el incidente de carga del VPS (contenido; producción
+  saludable).
+
+Detalle: [`docs/DESPLIEGUE-VPS-2026-05-16.md`](docs/DESPLIEGUE-VPS-2026-05-16.md).
+
 ## [0.1.0] - 2025-12-28
 
 ### Agregado
