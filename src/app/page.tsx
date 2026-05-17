@@ -11,11 +11,14 @@ export default function LandingPage() {
             <span className="text-xl font-bold text-editor-text-bright">PhotoClone AI</span>
           </div>
           <div className="flex items-center gap-4">
+            <Link href="/editor" className="text-editor-text hover:text-editor-text-bright transition-colors">
+              Abrir Editor
+            </Link>
             <Link href="/login" className="text-editor-text hover:text-editor-text-bright transition-colors">
               Iniciar Sesión
             </Link>
-            <Link href="/register" className="btn btn-primary">
-              Comenzar Gratis
+            <Link href="/login" className="btn btn-primary">
+              Cuenta Cédula 360
             </Link>
           </div>
         </nav>
@@ -33,7 +36,7 @@ export default function LandingPage() {
             Interfaz tipo Photoshop, completamente en tu navegador.
           </p>
           <div className="flex items-center justify-center gap-4">
-            <Link href="/register" className="btn btn-primary text-lg px-8 py-3">
+            <Link href="/editor" className="btn btn-primary text-lg px-8 py-3">
               Probar Ahora
             </Link>
             <Link href="/editor" className="btn btn-secondary text-lg px-8 py-3">
@@ -111,16 +114,32 @@ export default function LandingPage() {
           <p className="text-white/80 mb-8 max-w-2xl mx-auto">
             No necesitas descargar nada. Accede desde cualquier navegador y comienza a crear.
           </p>
-          <Link href="/register" className="bg-white text-editor-accent font-semibold px-8 py-3 rounded-lg hover:bg-gray-100 transition-colors inline-block">
-            Crear Cuenta Gratis
+          <Link href="/editor" className="bg-white text-editor-accent font-semibold px-8 py-3 rounded-lg hover:bg-gray-100 transition-colors inline-block">
+            Abrir el Editor
           </Link>
         </div>
       </section>
 
       {/* Footer */}
       <footer className="border-t border-editor-border py-8">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center text-editor-text-muted">
-          <p>&copy; 2024 PhotoClone AI. Todos los derechos reservados.</p>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center text-editor-text-muted space-y-1">
+          <p>&copy; 2026 PhotoClone AI. Todos los derechos reservados.</p>
+          <p>
+            En alianza con{' '}
+            <a
+              href="https://cedula360.tech"
+              className="text-editor-accent hover:underline"
+            >
+              Cédula 360
+            </a>{' '}
+            · Contacto:{' '}
+            <a
+              href="mailto:info@cedula360.tech"
+              className="text-editor-accent hover:underline"
+            >
+              info@cedula360.tech
+            </a>
+          </p>
         </div>
       </footer>
     </div>

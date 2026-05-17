@@ -1,16 +1,11 @@
-import { createClient } from '@/lib/supabase/server'
+/**
+ * NEUTRALIZADO: OAuth de Supabase retirado. La autenticación se realiza
+ * vía /api/auth/* (local + alianza Cédula 360). Cualquier acceso a este
+ * callback redirige al login.
+ */
 import { NextResponse } from 'next/server'
 
 export async function GET(request: Request) {
-  const requestUrl = new URL(request.url)
-  const code = requestUrl.searchParams.get('code')
-  const origin = requestUrl.origin
-
-  if (code) {
-    const supabase = await createClient()
-    await supabase.auth.exchangeCodeForSession(code)
-  }
-
-  // URL to redirect to after sign in process completes
-  return NextResponse.redirect(`${origin}/editor`)
+  const origin = new URL(request.url).origin
+  return NextResponse.redirect(`${origin}/login`)
 }

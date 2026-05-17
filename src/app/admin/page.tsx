@@ -1,0 +1,426 @@
+'use client'
+
+import { useEffect, useState, useCallback } from 'react'
+import Link from 'next/link'
+
+interface U {
+  id: number
+  email: string
+  name: string
+  role: 'admin' | 'viewer'
+  active: boolean
+  created_at: string | null
+  last_login_at: string | null
+}
+
+export default function AdminPage() {
+  const [me, setMe] = useState<U | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [tab, setTab] = useState<'users' | 'profile' | 'sessions'>('profile')
+  const [users, setUsers] = useState<U[]>([])
+  const [sessions, setSessions] = useState<any[]>([])
+  const [msg, setMsg] = useState('')
+  const [form, setForm] = useState({
+    email: '',
+    name: '',
+    password: '',
+    role: 'viewer',
+  })
+  const [profile, setProfile] = useState({ name: '', password: '' })
+
+  const loadMe = useCallback(() => {
+    fetch('/api/auth/me', { credentials: 'include' })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => {
+        setMe(d?.user ?? null)
+        setProfile({ name: d?.user?.name || '', password: '' })
+        setLoading(false)
+        if (d?.user?.role === 'admin') setTab('users')
+      })
+      .catch(() => setLoading(false))
+  }, [])
+
+  useEffect(loadMe, [loadMe])
+
+  const loadUsers = () =>
+    fetch('/api/admin/users', { credentials: 'include' })
+      .then((r) => r.json())
+      .then((d) => setUsers(d.users || []))
+      .catch(() => {})
+
+  const loadSessions = () =>
+    fetch('/api/admin/sessions', { credentials: 'include' })
+      .then((r) => r.json())
+      .then((d) => setSessions(d.sessions || []))
+      .catch(() => {})
+
+  useEffect(() => {
+    if (tab === 'users' && me?.role === 'admin') loadUsers()
+    if (tab === 'sessions') loadSessions()
+  }, [tab, me])
+
+  const createUser = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setMsg('')
+    const r = await fetch('/api/admin/users', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify(form),
+    })
+    const d = await r.json()
+    if (!r.ok) {
+      setMsg(d.error || 'Error')
+      return
+    }
+    setForm({ email: '', name: '', password: '', role: 'viewer' })
+    setMsg('Usuario creado')
+    loadUsers()
+  }
+
+  const toggleActive = async (u: U) => {
+    await fetch(`/api/admin/users/${u.id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({ active: !u.active }),
+    })
+    loadUsers()
+  }
+
+  const setRole = async (u: U, role: string) => {
+    await fetch(`/api/admin/users/${u.id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({ role }),
+    })
+    loadUsers()
+  }
+
+  const delUser = async (u: U) => {
+    if (!confirm(`¿Eliminar ${u.email}?`)) return
+    await fetch(`/api/admin/users/${u.id}`, {
+      method: 'DELETE',
+      credentials: 'include',
+    })
+    loadUsers()
+  }
+
+  const saveProfile = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setMsg('')
+    const body: any = { name: profile.name }
+    if (profile.password) body.password = profile.password
+    const r = await fetch('/api/admin/profile', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify(body),
+    })
+    const d = await r.json()
+    setMsg(r.ok ? 'Perfil actualizado' : d.error || 'Error')
+    if (r.ok) setProfile({ ...profile, password: '' })
+  }
+
+  const logout = async () => {
+    await fetch('/api/auth/logout', {
+      method: 'POST',
+      credentials: 'include',
+    })
+    window.location.href = '/'
+  }
+
+  if (loading)
+    return (
+      <div className="min-h-screen bg-editor-bg flex items-center justify-center text-editor-text-muted">
+        Cargando…
+      </div>
+    )
+
+  if (!me)
+    return (
+      <div className="min-h-screen bg-editor-bg flex items-center justify-center p-4">
+        <div className="bg-editor-surface rounded-xl border border-editor-border p-8 text-center max-w-md">
+          <h2 className="text-xl font-bold text-editor-text-bright mb-2">
+            Sesión requerida
+          </h2>
+          <p className="text-editor-text-muted mb-6">
+            Inicia sesión para acceder al panel de cuenta.
+          </p>
+          <Link href="/login" className="btn btn-primary">
+            Iniciar Sesión
+          </Link>
+        </div>
+      </div>
+    )
+
+  return (
+    <div className="min-h-screen bg-editor-bg text-editor-text">
+      <header className="border-b border-editor-border">
+        <nav className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <span className="material-symbols-outlined text-editor-accent text-2xl">
+              admin_panel_settings
+            </span>
+            <span className="font-bold text-editor-text-bright">
+              PhotoClone · Cuenta
+            </span>
+          </div>
+          <div className="flex items-center gap-4 text-sm">
+            <span className="text-editor-text-muted">
+              {me.email} · {me.role}
+            </span>
+            <Link href="/editor" className="text-editor-accent hover:underline">
+              Editor
+            </Link>
+            <button
+              onClick={logout}
+              className="text-editor-text-muted hover:text-red-400"
+            >
+              Salir
+            </button>
+          </div>
+        </nav>
+      </header>
+
+      <main className="max-w-6xl mx-auto px-4 py-8">
+        <div className="flex gap-2 mb-6 border-b border-editor-border">
+          {me.role === 'admin' && (
+            <button
+              onClick={() => setTab('users')}
+              className={`px-4 py-2 ${
+                tab === 'users'
+                  ? 'border-b-2 border-editor-accent text-editor-text-bright'
+                  : 'text-editor-text-muted'
+              }`}
+            >
+              Usuarios
+            </button>
+          )}
+          <button
+            onClick={() => setTab('profile')}
+            className={`px-4 py-2 ${
+              tab === 'profile'
+                ? 'border-b-2 border-editor-accent text-editor-text-bright'
+                : 'text-editor-text-muted'
+            }`}
+          >
+            Mi perfil
+          </button>
+          <button
+            onClick={() => setTab('sessions')}
+            className={`px-4 py-2 ${
+              tab === 'sessions'
+                ? 'border-b-2 border-editor-accent text-editor-text-bright'
+                : 'text-editor-text-muted'
+            }`}
+          >
+            Sesiones
+          </button>
+        </div>
+
+        {msg && (
+          <div className="mb-4 p-3 bg-editor-active/30 border border-editor-border rounded-lg text-sm">
+            {msg}
+          </div>
+        )}
+
+        {tab === 'users' && me.role === 'admin' && (
+          <div className="space-y-8">
+            <form
+              onSubmit={createUser}
+              className="bg-editor-surface border border-editor-border rounded-xl p-6 grid sm:grid-cols-2 gap-4"
+            >
+              <h3 className="sm:col-span-2 font-semibold text-editor-text-bright">
+                Crear usuario
+              </h3>
+              <input
+                className="input"
+                placeholder="Email"
+                type="email"
+                value={form.email}
+                onChange={(e) =>
+                  setForm({ ...form, email: e.target.value })
+                }
+                required
+              />
+              <input
+                className="input"
+                placeholder="Nombre"
+                value={form.name}
+                onChange={(e) => setForm({ ...form, name: e.target.value })}
+              />
+              <input
+                className="input"
+                placeholder="Contraseña (min 8)"
+                type="password"
+                value={form.password}
+                onChange={(e) =>
+                  setForm({ ...form, password: e.target.value })
+                }
+                required
+              />
+              <select
+                className="input"
+                value={form.role}
+                onChange={(e) => setForm({ ...form, role: e.target.value })}
+              >
+                <option value="viewer">viewer</option>
+                <option value="admin">admin</option>
+              </select>
+              <button className="btn btn-primary sm:col-span-2">
+                Crear
+              </button>
+            </form>
+
+            <div className="bg-editor-surface border border-editor-border rounded-xl overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead className="text-editor-text-muted border-b border-editor-border">
+                  <tr>
+                    <th className="text-left p-3">Email</th>
+                    <th className="text-left p-3">Nombre</th>
+                    <th className="text-left p-3">Rol</th>
+                    <th className="text-left p-3">Activo</th>
+                    <th className="text-left p-3">Último login</th>
+                    <th className="p-3"></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {users.map((u) => (
+                    <tr
+                      key={u.id}
+                      className="border-b border-editor-border/50"
+                    >
+                      <td className="p-3">{u.email}</td>
+                      <td className="p-3">{u.name}</td>
+                      <td className="p-3">
+                        <select
+                          value={u.role}
+                          onChange={(e) => setRole(u, e.target.value)}
+                          className="bg-editor-bg border border-editor-border rounded px-2 py-1"
+                        >
+                          <option value="viewer">viewer</option>
+                          <option value="admin">admin</option>
+                        </select>
+                      </td>
+                      <td className="p-3">
+                        <button
+                          onClick={() => toggleActive(u)}
+                          className={
+                            u.active ? 'text-green-400' : 'text-red-400'
+                          }
+                        >
+                          {u.active ? 'sí' : 'no'}
+                        </button>
+                      </td>
+                      <td className="p-3 text-editor-text-muted">
+                        {u.last_login_at
+                          ? new Date(u.last_login_at).toLocaleString()
+                          : '—'}
+                      </td>
+                      <td className="p-3">
+                        <button
+                          onClick={() => delUser(u)}
+                          className="text-red-400 hover:underline"
+                        >
+                          eliminar
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+
+        {tab === 'profile' && (
+          <form
+            onSubmit={saveProfile}
+            className="bg-editor-surface border border-editor-border rounded-xl p-6 max-w-md space-y-4"
+          >
+            <h3 className="font-semibold text-editor-text-bright">
+              Mi perfil
+            </h3>
+            <div>
+              <label className="block text-sm mb-1">Email</label>
+              <input className="input" value={me.email} disabled />
+            </div>
+            <div>
+              <label className="block text-sm mb-1">Nombre</label>
+              <input
+                className="input"
+                value={profile.name}
+                onChange={(e) =>
+                  setProfile({ ...profile, name: e.target.value })
+                }
+              />
+            </div>
+            <div>
+              <label className="block text-sm mb-1">
+                Nueva contraseña (opcional, min 8)
+              </label>
+              <input
+                className="input"
+                type="password"
+                value={profile.password}
+                onChange={(e) =>
+                  setProfile({ ...profile, password: e.target.value })
+                }
+              />
+            </div>
+            <button className="btn btn-primary">Guardar</button>
+          </form>
+        )}
+
+        {tab === 'sessions' && (
+          <div className="bg-editor-surface border border-editor-border rounded-xl overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead className="text-editor-text-muted border-b border-editor-border">
+                <tr>
+                  <th className="text-left p-3">Token</th>
+                  <th className="text-left p-3">Creada</th>
+                  <th className="text-left p-3">Expira</th>
+                  <th className="text-left p-3">IP</th>
+                  <th className="text-left p-3">User-Agent</th>
+                </tr>
+              </thead>
+              <tbody>
+                {sessions.map((s, i) => (
+                  <tr key={i} className="border-b border-editor-border/50">
+                    <td className="p-3 font-mono">{s.token_preview}</td>
+                    <td className="p-3">
+                      {s.created_at
+                        ? new Date(s.created_at).toLocaleString()
+                        : '—'}
+                    </td>
+                    <td className="p-3">
+                      {s.expires_at
+                        ? new Date(s.expires_at).toLocaleString()
+                        : '—'}
+                    </td>
+                    <td className="p-3">{s.ip}</td>
+                    <td className="p-3 text-editor-text-muted truncate max-w-xs">
+                      {s.user_agent}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </main>
+      <footer className="border-t border-editor-border py-6 text-center text-xs text-editor-text-muted">
+        PhotoClone AI · en alianza con{' '}
+        <a
+          href="https://cedula360.tech"
+          className="text-editor-accent hover:underline"
+        >
+          Cédula 360
+        </a>{' '}
+        · info@cedula360.tech
+      </footer>
+    </div>
+  )
+}

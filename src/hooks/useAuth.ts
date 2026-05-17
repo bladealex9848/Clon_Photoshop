@@ -1,35 +1,50 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { createClient } from '@/lib/supabase/client'
-import type { User } from '@supabase/supabase-js'
 
+export interface AuthUser {
+  id: number
+  email: string
+  name: string
+  role: 'admin' | 'viewer'
+  active: boolean
+}
+
+/**
+ * Hook de sesión local (MariaDB) + alianza Cédula 360.
+ * Reemplaza al hook de Supabase. El editor es público; este hook sólo
+ * refleja si hay una cuenta autenticada (para /admin y la UI).
+ */
 export function useAuth() {
-  const [user, setUser] = useState<User | null>(null)
+  const [user, setUser] = useState<AuthUser | null>(null)
   const [loading, setLoading] = useState(true)
-  const supabase = createClient()
 
   useEffect(() => {
-    // Get initial session
-    const getUser = async () => {
-      const { data: { user } } = await supabase.auth.getUser()
-      setUser(user)
-      setLoading(false)
+    let alive = true
+    fetch('/api/auth/me', { credentials: 'include' })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => {
+        if (alive) {
+          setUser(d?.user ?? null)
+          setLoading(false)
+        }
+      })
+      .catch(() => {
+        if (alive) {
+          setUser(null)
+          setLoading(false)
+        }
+      })
+    return () => {
+      alive = false
     }
-
-    getUser()
-
-    // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user ?? null)
-      setLoading(false)
-    })
-
-    return () => subscription.unsubscribe()
-  }, [supabase])
+  }, [])
 
   const signOut = async () => {
-    await supabase.auth.signOut()
+    await fetch('/api/auth/logout', {
+      method: 'POST',
+      credentials: 'include',
+    })
     window.location.href = '/'
   }
 

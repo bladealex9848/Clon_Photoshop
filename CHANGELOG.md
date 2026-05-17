@@ -5,6 +5,39 @@ Todos los cambios notables de este proyecto se documentan en este archivo.
 El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/),
 y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
+## [0.2.0] - 2026-05-16
+
+### Agregado — Plataforma + alianza "Login con Cédula 360"
+
+- **Autenticación local MariaDB** (reemplaza Supabase): tablas `users` y
+  `sessions` creadas idempotentemente vía `ensureSchema()`; bcrypt; cookie
+  de sesión httponly `clon_ps_session` (30 días, secure+lax).
+- **API routes Next.js** (`runtime=nodejs`, `force-dynamic`):
+  - `/api/auth/{login,logout,me,config}` — login local + sesión.
+  - `/api/auth/cedula360/{login,challenge,verify}` — alianza Cédula 360
+    server-to-server contra el backend REAL `http://localhost:3081`
+    (NUNCA :9091). Reenvío de IP real (`X-Forwarded-For`/`X-Real-IP`) en
+    cada llamada por el rate-limit 10/min por IP. Soporta MFA inline
+    (`totp|email_otp|sms_otp|whatsapp_otp|push|backup_code`).
+  - `/api/admin/{users,users/[id],profile,sessions}` — CRUD usuarios
+    (RBAC admin), perfil propio, sesiones.
+- **reCAPTCHA v3** (claves Cédula 360, umbral 0.3, fail-open) en logins.
+- **Panel `/admin`**: SPA con tabs Usuarios (admin), Mi perfil, Sesiones.
+- **Login** con botón "Continuar con Cédula 360" + 2FA inline; el editor
+  permanece **público** (transformación aditiva, sin gating del editor).
+- **Marca de alianza**: footer/landing "en alianza con Cédula 360" +
+  enlace cedula360.tech + contacto info@cedula360.tech.
+- Despliegue VPS: `clon-photoshop.service` (Next.js, 127.0.0.1:3024) +
+  `clon-photoshop-webhook.service` (auto-deploy GitHub, 127.0.0.1:3025).
+  Doc: `docs/DESPLIEGUE-VPS-2026-05-16.md`.
+
+### Cambiado
+
+- Supabase neutralizado a stubs de compatibilidad (sin OAuth). `middleware`
+  ya no fuerza login en `/editor`; sólo redirige sesiones a `/admin`.
+- Registro abierto retirado: acceso vía Cédula 360 o credenciales emitidas
+  por un administrador.
+
 ## [0.1.0] - 2025-12-28
 
 ### Agregado

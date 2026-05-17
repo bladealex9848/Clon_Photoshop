@@ -1,32 +1,15 @@
-import { createServerClient, type CookieOptions } from '@supabase/ssr'
-import { cookies } from 'next/headers'
-
+/**
+ * NEUTRALIZADO: stub de compatibilidad server-side. La autenticación real
+ * vive en /api/auth/* (sesión local MariaDB + alianza Cédula 360).
+ */
 export async function createClient() {
-  const cookieStore = await cookies()
-
-  return createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        get(name: string) {
-          return cookieStore.get(name)?.value
-        },
-        set(name: string, value: string, options: CookieOptions) {
-          try {
-            cookieStore.set({ name, value, ...options })
-          } catch {
-            // Handle cookies in Server Components
-          }
-        },
-        remove(name: string, options: CookieOptions) {
-          try {
-            cookieStore.set({ name, value: '', ...options })
-          } catch {
-            // Handle cookies in Server Components
-          }
-        },
-      },
-    }
-  )
+  const noop = async () => ({ data: { user: null, session: null }, error: null })
+  return {
+    auth: {
+      getUser: noop,
+      getSession: noop,
+      exchangeCodeForSession: noop,
+      signOut: async () => ({ error: null }),
+    },
+  }
 }

@@ -13,7 +13,8 @@ Editor de imágenes estilo Photoshop construido con Next.js 15, React 19 y Canva
 - **Edición de Capas con IA**: Modifica capas existentes usando prompts de texto
 - **Exportación**: PNG, ZIP con capas, formato proyecto .photoclone
 - **Atajos de Teclado**: V, B, E, T, Z, Ctrl+Z/Y, etc.
-- **Autenticación**: Supabase (Email, Google, GitHub)
+- **Autenticación**: cuenta local MariaDB + alianza **Login con Cédula 360**
+  (2FA inline). El editor es **público** — no requiere cuenta.
 
 ## Stack Tecnológico
 
@@ -21,7 +22,7 @@ Editor de imágenes estilo Photoshop construido con Next.js 15, React 19 y Canva
 - **UI**: React 19, Tailwind CSS
 - **Estado**: Zustand
 - **Canvas**: Canvas 2D API
-- **Auth**: Supabase
+- **Auth**: MariaDB + alianza Cédula 360 (API routes Next.js, bcrypt, cookie)
 - **IA**: Replicate (qwen/qwen-image-layered)
 - **Export**: JSZip, FileSaver
 

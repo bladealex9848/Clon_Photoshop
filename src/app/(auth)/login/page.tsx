@@ -1,109 +1,338 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { createClient } from '@/lib/supabase/client'
+
+declare global {
+  interface Window {
+    grecaptcha?: any
+  }
+}
+
+type Step = 'login' | 'mfa'
 
 export default function LoginPage() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
+  const [step, setStep] = useState<Step>('login')
+  const [siteKey, setSiteKey] = useState('')
+  // estado MFA Cédula 360
+  const [sessionId, setSessionId] = useState('')
+  const [methods, setMethods] = useState<string[]>([])
+  const [method, setMethod] = useState('')
+  const [code, setCode] = useState('')
   const router = useRouter()
 
-  const handleEmailLogin = async (e: React.FormEvent) => {
+  useEffect(() => {
+    fetch('/api/auth/config')
+      .then((r) => r.json())
+      .then((d) => {
+        if (d.recaptcha_site_key) {
+          setSiteKey(d.recaptcha_site_key)
+          const s = document.createElement('script')
+          s.src = `https://www.google.com/recaptcha/api.js?render=${d.recaptcha_site_key}`
+          s.async = true
+          document.head.appendChild(s)
+        }
+      })
+      .catch(() => {})
+  }, [])
+
+  const recaptcha = async (action: string): Promise<string | undefined> => {
+    try {
+      if (siteKey && window.grecaptcha) {
+        return await new Promise((res) =>
+          window.grecaptcha.ready(() =>
+            window.grecaptcha
+              .execute(siteKey, { action })
+              .then(res)
+              .catch(() => res(undefined))
+          )
+        )
+      }
+    } catch {
+      /* fail-open */
+    }
+    return undefined
+  }
+
+  const handleLocalLogin = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
     setError(null)
-
-    const supabase = createClient()
-    const { error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    })
-
-    if (error) {
-      setError(error.message)
-      setLoading(false)
-    } else {
-      router.push('/editor')
+    try {
+      const token = await recaptcha('login')
+      const r = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ email, password, recaptcha_token: token }),
+      })
+      const d = await r.json()
+      if (!r.ok) {
+        setError(d.error || 'Credenciales inválidas')
+        setLoading(false)
+        return
+      }
+      router.push('/admin')
       router.refresh()
+    } catch {
+      setError('Error de red')
+      setLoading(false)
+    }
+  }
+
+  const handleCedula360 = async () => {
+    if (!email || !password) {
+      setError('Ingresa tu correo y contraseña de Cédula 360')
+      return
+    }
+    setLoading(true)
+    setError(null)
+    try {
+      const token = await recaptcha('cedula360_login')
+      const r = await fetch('/api/auth/cedula360/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ email, password, recaptcha_token: token }),
+      })
+      const d = await r.json()
+      if (!r.ok) {
+        setError(d.error || `Error ${r.status} de Cédula 360`)
+        setLoading(false)
+        return
+      }
+      if (d.mfa_required) {
+        setSessionId(d.session_id)
+        setMethods(d.methods || [])
+        setMethod((d.methods && d.methods[0]) || 'email_otp')
+        setStep('mfa')
+        setLoading(false)
+        // dispara challenge para métodos que envían código
+        if (
+          ['email_otp', 'sms_otp', 'whatsapp_otp', 'push'].includes(
+            (d.methods && d.methods[0]) || ''
+          )
+        ) {
+          fetch('/api/auth/cedula360/challenge', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              session_id: d.session_id,
+              method: d.methods[0],
+            }),
+          }).catch(() => {})
+        }
+        return
+      }
+      router.push('/admin')
+      router.refresh()
+    } catch {
+      setError('Error de red')
+      setLoading(false)
+    }
+  }
+
+  const handleVerify = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setLoading(true)
+    setError(null)
+    try {
+      const r = await fetch('/api/auth/cedula360/verify', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ session_id: sessionId, method, code }),
+      })
+      const d = await r.json()
+      if (!r.ok) {
+        setError(d.error || 'Código inválido')
+        setLoading(false)
+        return
+      }
+      router.push('/admin')
+      router.refresh()
+    } catch {
+      setError('Error de red')
+      setLoading(false)
+    }
+  }
+
+  const changeMethod = async (m: string) => {
+    setMethod(m)
+    setCode('')
+    if (['email_otp', 'sms_otp', 'whatsapp_otp', 'push'].includes(m)) {
+      await fetch('/api/auth/cedula360/challenge', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ session_id: sessionId, method: m }),
+      }).catch(() => {})
     }
   }
 
   return (
     <div className="min-h-screen bg-editor-bg flex items-center justify-center p-4">
       <div className="w-full max-w-md">
-        {/* Logo */}
         <div className="text-center mb-8">
           <div className="flex items-center justify-center gap-2 mb-2">
-            <span className="material-symbols-outlined text-editor-accent text-4xl">layers</span>
-            <span className="text-2xl font-bold text-editor-text-bright">PhotoClone AI</span>
+            <span className="material-symbols-outlined text-editor-accent text-4xl">
+              layers
+            </span>
+            <span className="text-2xl font-bold text-editor-text-bright">
+              PhotoClone AI
+            </span>
           </div>
-          <p className="text-editor-text-muted">Inicia sesión para continuar</p>
+          <p className="text-editor-text-muted">
+            {step === 'login'
+              ? 'Inicia sesión para gestionar tu cuenta'
+              : 'Verificación en dos pasos'}
+          </p>
         </div>
 
-        {/* Card */}
         <div className="bg-editor-surface rounded-xl border border-editor-border p-6">
-          {/* OAuth Buttons - DISABLED */}
-          {/* Divider - DISABLED */}
+          {error && (
+            <div className="p-3 mb-4 bg-red-500/10 border border-red-500/20 rounded-lg text-red-400 text-sm">
+              {error}
+            </div>
+          )}
 
-          {/* Email Form */}
-          <form onSubmit={handleEmailLogin} className="space-y-4">
-            {error && (
-              <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-lg text-red-400 text-sm">
-                {error}
+          {step === 'login' && (
+            <>
+              <form onSubmit={handleLocalLogin} className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-editor-text mb-1">
+                    Email
+                  </label>
+                  <input
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    className="input"
+                    placeholder="tu@email.com"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-editor-text mb-1">
+                    Contraseña
+                  </label>
+                  <input
+                    type="password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    className="input"
+                    placeholder="••••••••"
+                    required
+                  />
+                </div>
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="w-full btn btn-primary py-3 disabled:opacity-50"
+                >
+                  {loading ? 'Verificando...' : 'Iniciar Sesión'}
+                </button>
+              </form>
+
+              <div className="flex items-center gap-3 my-5">
+                <div className="flex-1 h-px bg-editor-border" />
+                <span className="text-xs text-editor-text-muted">o</span>
+                <div className="flex-1 h-px bg-editor-border" />
               </div>
-            )}
 
-            <div>
-              <label htmlFor="email" className="block text-sm font-medium text-editor-text mb-1">
-                Email
-              </label>
-              <input
-                id="email"
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="input"
-                placeholder="tu@email.com"
-                required
-              />
-            </div>
+              <button
+                type="button"
+                onClick={handleCedula360}
+                disabled={loading}
+                className="w-full btn btn-secondary py-3 disabled:opacity-50 flex items-center justify-center gap-2"
+              >
+                <span className="material-symbols-outlined text-base">
+                  verified_user
+                </span>
+                Continuar con Cédula 360
+              </button>
+              <p className="mt-3 text-center text-xs text-editor-text-muted">
+                Usa el mismo correo y contraseña de tu cuenta Cédula 360.
+              </p>
+            </>
+          )}
 
-            <div>
-              <label htmlFor="password" className="block text-sm font-medium text-editor-text mb-1">
-                Contraseña
-              </label>
-              <input
-                id="password"
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="input"
-                placeholder="••••••••"
-                required
-              />
-            </div>
+          {step === 'mfa' && (
+            <form onSubmit={handleVerify} className="space-y-4">
+              {methods.length > 1 && (
+                <div>
+                  <label className="block text-sm font-medium text-editor-text mb-1">
+                    Método de verificación
+                  </label>
+                  <select
+                    value={method}
+                    onChange={(e) => changeMethod(e.target.value)}
+                    className="input"
+                  >
+                    {methods.map((m) => (
+                      <option key={m} value={m}>
+                        {m}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
+              <div>
+                <label className="block text-sm font-medium text-editor-text mb-1">
+                  Código ({method})
+                </label>
+                <input
+                  type="text"
+                  value={code}
+                  onChange={(e) => setCode(e.target.value)}
+                  className="input"
+                  placeholder="123456"
+                  autoFocus
+                  required
+                />
+              </div>
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full btn btn-primary py-3 disabled:opacity-50"
+              >
+                {loading ? 'Verificando...' : 'Verificar y entrar'}
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setStep('login')
+                  setError(null)
+                }}
+                className="w-full text-sm text-editor-text-muted hover:underline"
+              >
+                Volver
+              </button>
+            </form>
+          )}
 
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full btn btn-primary py-3 disabled:opacity-50"
-            >
-              {loading ? 'Iniciando sesión...' : 'Iniciar Sesión'}
-            </button>
-          </form>
-
-          {/* Register Link */}
           <p className="mt-6 text-center text-sm text-editor-text-muted">
-            ¿No tienes cuenta?{' '}
-            <Link href="/register" className="text-editor-accent hover:underline">
-              Regístrate
+            <Link
+              href="/editor"
+              className="text-editor-accent hover:underline"
+            >
+              Usar el editor sin cuenta
             </Link>
           </p>
         </div>
+        <p className="mt-6 text-center text-xs text-editor-text-muted">
+          En alianza con{' '}
+          <a
+            href="https://cedula360.tech"
+            className="text-editor-accent hover:underline"
+          >
+            Cédula 360
+          </a>
+        </p>
       </div>
     </div>
   )

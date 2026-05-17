@@ -1,75 +1,20 @@
-import { createServerClient, type CookieOptions } from '@supabase/ssr'
+/**
+ * NEUTRALIZADO: la alianza "Login con Cédula 360" reemplaza a Supabase.
+ *
+ * El editor de imágenes es PÚBLICO y plenamente usable sin sesión (la
+ * transformación es aditiva). El gating de cuenta vive en /admin sobre
+ * sesión local MariaDB. Este módulo sólo redirige usuarios ya autenticados
+ * fuera de /login y /register. No fuerza login en /editor.
+ */
 import { NextResponse, type NextRequest } from 'next/server'
 
+const COOKIE_NAME = 'clon_ps_session'
+
 export async function updateSession(request: NextRequest) {
-  let response = NextResponse.next({
-    request: {
-      headers: request.headers,
-    },
-  })
-
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        get(name: string) {
-          return request.cookies.get(name)?.value
-        },
-        set(name: string, value: string, options: CookieOptions) {
-          request.cookies.set({
-            name,
-            value,
-            ...options,
-          })
-          response = NextResponse.next({
-            request: {
-              headers: request.headers,
-            },
-          })
-          response.cookies.set({
-            name,
-            value,
-            ...options,
-          })
-        },
-        remove(name: string, options: CookieOptions) {
-          request.cookies.set({
-            name,
-            value: '',
-            ...options,
-          })
-          response = NextResponse.next({
-            request: {
-              headers: request.headers,
-            },
-          })
-          response.cookies.set({
-            name,
-            value: '',
-            ...options,
-          })
-        },
-      },
-    }
-  )
-
-  // Refresh session if expired
-  const { data: { user } } = await supabase.auth.getUser()
-
-  // Protect /editor routes - require authentication
-  if (request.nextUrl.pathname.startsWith('/editor')) {
-    if (!user) {
-      const loginUrl = new URL('/login', request.url)
-      loginUrl.searchParams.set('redirect', request.nextUrl.pathname)
-      return NextResponse.redirect(loginUrl)
-    }
+  const hasSession = !!request.cookies.get(COOKIE_NAME)?.value
+  const path = request.nextUrl.pathname
+  if (hasSession && (path === '/login' || path === '/register')) {
+    return NextResponse.redirect(new URL('/admin', request.url))
   }
-
-  // Redirect authenticated users away from auth pages
-  if (user && (request.nextUrl.pathname === '/login' || request.nextUrl.pathname === '/register')) {
-    return NextResponse.redirect(new URL('/editor', request.url))
-  }
-
-  return response
+  return NextResponse.next({ request: { headers: request.headers } })
 }
