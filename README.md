@@ -35,19 +35,24 @@ real de Cédula 360 (`:3081`) + 2FA inline, panel `/admin` con RBAC y
 reCAPTCHA v3 fail-open. El editor permanece **público** (transformación
 aditiva).
 
-> **Estado:** la app **NO está desplegada/sirviendo todavía** —
-> `photoshop.cedula360.tech` da **502**; el `next build` corre en serie
-> (VPS compartido sensible a carga) y aún no termina.
+> **Estado (2026-05-17): DESPLEGADO Y VALIDADO.** Build corregido
+> (`9463a77`, declaración ambiente `bcryptjs`). Servicios
+> `clon-photoshop` + `clon-photoshop-webhook` activos;
+> `photoshop.cedula360.tech/` y `/admin` → **200**; alianza con
+> credenciales falsas → **401 real** `:3081`; MariaDB `clon_photoshop`
+> con tablas `users`/`sessions`.
 
 ### Pendientes
 
-- Tras el build: iniciar `clon-photoshop` + `clon-photoshop-webhook`,
-  verificar y registrar el webhook de GitHub
-  (`https://photoshop.cedula360.tech/webhook`). Mientras no se registre,
-  `git push` no dispara deploy.
+- **Operador — registrar el webhook de GitHub**
+  (`https://photoshop.cedula360.tech/webhook`, HMAC SHA256; secreto
+  server-side, no documentado). Hasta registrarlo, `git push` no
+  dispara auto-deploy.
 - **Operador**: añadir `photoshop.cedula360.tech` a los dominios de la
   llave reCAPTCHA de Cédula 360 en la consola de Google (mitigado por
   fail-open `0.3`).
+- **Admin inicial** `bladealex@gmail.com`; contraseña server-side en
+  `/root/.clon_photoshop_env` (no documentada).
 - **Infra compartida**: serializar deploys por webhook / nice-cgroup
   tras el incidente de carga del VPS (contenido; producción saludable).
 

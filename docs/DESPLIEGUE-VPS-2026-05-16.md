@@ -113,31 +113,32 @@ en `clon-photoshop.service`.
   desde `/admin → Mi perfil` tras el primer acceso.
 - Orquestador: añadir el bloque Caddy y emitir TLS.
 
+## Estado — DESPLEGADO Y VALIDADO (2026-05-17)
+
+El build se corrigió (`9463a77`: declaración ambiente para `bcryptjs`,
+`tsc` fallaba en `next build`) y la app **está desplegada y sirviendo**:
+
+- Servicios `clon-photoshop` y `clon-photoshop-webhook` **activos**.
+- `https://photoshop.cedula360.tech/` → **200**; `/admin` → **200**.
+- Alianza con credenciales falsas → **401 real** desde el backend
+  Cédula 360 `:3081` (no el stub `:9091`).
+- MariaDB `clon_photoshop`: tablas `users`, `sessions` creadas.
+
 ## Pendientes
 
-> **IMPORTANTE — la app NO está desplegada/sirviendo todavía.** El
-> dominio `photoshop.cedula360.tech` responde **502**: el `next build`
-> está corriendo **en serie** (sin paralelizar, por la sensibilidad de
-> carga del VPS compartido) y aún no ha terminado. No tocar
-> `node_modules`/`.next` mientras el build esté en curso.
-
-Tras completar el build, en orden:
-
-1. Iniciar/habilitar los servicios `clon-photoshop` y
-   `clon-photoshop-webhook` y verificar que `127.0.0.1:3024` responde y
-   el dominio deja de dar 502.
-2. **Registrar el webhook de GitHub** apuntando a
-   `https://photoshop.cedula360.tech/webhook` (HMAC SHA256). Hasta que
-   se registre, **`git push` NO dispara deploy** (por eso es seguro
-   pushear ahora el commit `7a7ee9c` + el de docs sin efectos en VPS).
-3. **Operador — reCAPTCHA**: añadir `photoshop.cedula360.tech` a los
+1. **Operador — registrar el webhook de GitHub** apuntando a
+   `https://photoshop.cedula360.tech/webhook` (HMAC SHA256). El secreto
+   vive **server-side** en el script/entorno del webhook —
+   **no se documenta aquí**. Hasta registrarlo, `git push` no dispara
+   auto-deploy.
+2. **Operador — reCAPTCHA**: añadir `photoshop.cedula360.tech` a los
    dominios de la llave reCAPTCHA de Cédula 360 en la consola de Google
    (mitigado mientras tanto por el fail-open `score 0.3`).
-4. **Admin inicial**: `bladealex@gmail.com`; la contraseña vive
+3. **Admin inicial**: `bladealex@gmail.com`; la contraseña vive
    **server-side** en `/root/.clon_photoshop_env`
    (`CLON_PS_ADMIN_PASSWORD`) — **no se documenta aquí**. Cambiarla
    desde `/admin → Mi perfil` tras el primer acceso.
-5. **Infra compartida (transversal del ecosistema)**: serializar los
+4. **Infra compartida (transversal del ecosistema)**: serializar los
    deploys por webhook / aplicarles nice-cgroup tras el incidente de
    carga del VPS por builds sobre-paralelos (contenido; producción
    saludable).
