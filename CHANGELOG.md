@@ -5,6 +5,31 @@ Todos los cambios notables de este proyecto se documentan en este archivo.
 El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/),
 y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
+## [0.3.2] - 2026-05-18
+
+### Cambiado — Landing rediseñada (UI/UX de producto)
+
+- **Landing reescrita** con propuesta de valor clara: qué hace el
+  producto, "Cómo funciona" (3 pasos), 6 características, badges de
+  confianza, CTA dual, header sticky con navegación por anclas y footer.
+- **Preview del editor**: el placeholder vacío ("Vista previa del
+  editor") se reemplazó por un **mockup fiel** del editor real
+  (TopBar + Toolbar + lienzo con composición de ejemplo + panel de
+  capas con edición IA) — ahora sí muestra qué es el producto.
+- `metadata` SEO (title/description) en la landing.
+
+### Agregado — Navegación desde /admin
+
+- El logo de `/admin` ahora enlaza a `/` y se añadió enlace **"Inicio"**
+  (antes no había forma de volver a la landing desde el panel).
+
+### Validado
+
+- Playwright e2e: 13/13 OK, 0 errores de consola (contenido de la
+  landing, mockup presente, anclas, `/admin` → landing).
+
+Detalle: [`docs/EDITOR-FUNCIONAL-COMPLETO-2026-05-17.md`](docs/EDITOR-FUNCIONAL-COMPLETO-2026-05-17.md).
+
 ## [0.3.1] - 2026-05-18
 
 ### Agregado — Navegación y sesión en el editor

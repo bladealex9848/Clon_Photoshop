@@ -159,18 +159,25 @@ export default function AdminPage() {
     <div className="min-h-screen bg-editor-bg text-editor-text">
       <header className="border-b border-editor-border">
         <nav className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-2">
+          <Link
+            href="/"
+            className="flex items-center gap-2 rounded px-2 py-1 hover:bg-editor-surface-hover transition-colors"
+            title="Volver a la página de inicio"
+          >
             <span className="material-symbols-outlined text-editor-accent text-2xl">
               admin_panel_settings
             </span>
             <span className="font-bold text-editor-text-bright">
               PhotoClone · Cuenta
             </span>
-          </div>
+          </Link>
           <div className="flex items-center gap-4 text-sm">
-            <span className="text-editor-text-muted">
+            <span className="hidden sm:inline text-editor-text-muted">
               {me.email} · {me.role}
             </span>
+            <Link href="/" className="text-editor-text-muted hover:text-editor-text-bright transition-colors">
+              Inicio
+            </Link>
             <Link href="/editor" className="text-editor-accent hover:underline">
               Editor
             </Link>

@@ -83,7 +83,18 @@ Faltaba volver a la landing y saber quién había iniciado sesión:
 Validado Playwright (anónimo + autenticado): logo→landing, "Iniciar
 sesión" sin sesión, panel de cuenta con `/admin` + logout con sesión.
 
+## Landing rediseñada + navegación admin (v0.3.2, 2026-05-18)
+
+- **`src/app/page.tsx` reescrita**: header sticky con anclas, hero con
+  propuesta de valor + badges, **mockup fiel del editor** (reemplaza el
+  placeholder vacío "Vista previa del editor"), sección "Cómo funciona"
+  (3 pasos), 6 características, CTA dual, footer con alianza Cédula 360
+  y GitHub. `metadata` SEO añadida.
+- **`/admin`**: logo enlaza a `/` + enlace "Inicio" (antes no se podía
+  volver a la landing desde el panel).
+- Validado Playwright: 13/13 OK, 0 errores de consola.
+
 ## Estado
 
-Build EXIT=0 (editor 58.1 kB), `clon-photoshop.service` activo,
-`/editor` 200. Probado con Playwright headless contra `127.0.0.1:3024`.
+Build EXIT=0, `clon-photoshop.service` activo, `/`, `/editor`, `/admin`
+→ 200. Probado con Playwright headless contra `127.0.0.1:3024`.
