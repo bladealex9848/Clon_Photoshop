@@ -181,6 +181,18 @@ export function LayersPanel() {
               </button>
             )}
 
+            {/* Delete this specific layer */}
+            <button
+              className="p-1 hover:bg-red-600/20 rounded transition-colors group disabled:opacity-30"
+              onClick={(e) => { e.stopPropagation(); removeLayer(layer.id); }}
+              title="Eliminar esta capa"
+              disabled={layers.length <= 1}
+            >
+              <span className="material-symbols-outlined text-base text-editor-text-muted group-hover:text-red-400">
+                delete
+              </span>
+            </button>
+
             {/* Layer Type Icon */}
             {layer.type === 'group' && (
               <span className="material-symbols-outlined text-base text-editor-text-muted">folder</span>

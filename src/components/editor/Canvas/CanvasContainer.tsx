@@ -32,6 +32,7 @@ export function CanvasContainer() {
   // Stores
   const { getOrderedLayers, activeLayerId, getLayer, addLayer } = useLayerStore()
   const { activeTool, config, primaryColor, secondaryColor, setPrimaryColor } = useToolStore()
+  const refreshLayer = useEngineStore((s) => s.refreshLayer)
   const { zoom, panX, panY, setZoom, addPan, showRulers, showGuides, showGrid, gridSize } = useViewStore()
   const docW = useDocumentStore((s) => s.width)
   const docH = useDocumentStore((s) => s.height)
@@ -194,24 +195,57 @@ export function CanvasContainer() {
     }
   }, [activeTool])
 
-  // Create tool context
+  // Repinta el lienzo visible a partir de las capas (feedback en vivo).
+  const repaint = useCallback(() => {
+    const comp = compositorRef.current
+    if (!comp) return
+    const ls = useLayerStore.getState()
+    comp.render(
+      ls.layerOrder.map((id) => ls.layers[id]).filter(Boolean),
+      ls.layerOrder
+    )
+  }, [])
+
+  // Conectar la herramienta Mover al transform de la capa activa.
+  useEffect(() => {
+    moveTool.setOnTransformChange((dx, dy) => {
+      const id = useLayerStore.getState().activeLayerId
+      if (!id) return
+      const l = useLayerStore.getState().layers[id]
+      if (!l) return
+      useLayerStore.getState().updateLayer(id, {
+        transform: { ...l.transform, x: l.transform.x + dx, y: l.transform.y + dy },
+      })
+      repaint()
+    })
+  }, [repaint])
+
+  // Create tool context. Las herramientas de dibujo operan sobre el
+  // canvas OFFSCREEN de la capa activa (donde los píxeles persisten y
+  // se componen); el cuentagotas lee del lienzo compuesto visible.
   const createToolContext = useCallback((): ToolContext | null => {
-    const canvas = canvasRef.current
-    if (!canvas) return null
+    const displayCanvas = canvasRef.current
+    const comp = compositorRef.current
+    if (!displayCanvas || !comp || !activeLayerId) return null
 
-    const ctx = canvas.getContext('2d')
-    if (!ctx) return null
+    if (activeTool === 'eyedropper') {
+      const dctx = displayCanvas.getContext('2d')
+      if (!dctx) return null
+      return { canvas: displayCanvas, ctx: dctx, layerId: activeLayerId, primaryColor, secondaryColor }
+    }
 
-    if (!activeLayerId) return null
+    const layerCanvas = comp.layerEngine.getLayerCanvas(activeLayerId)
+    const layerCtx = comp.layerEngine.getLayerContext(activeLayerId)
+    if (!layerCtx) return null
 
     return {
-      canvas,
-      ctx,
+      canvas: layerCanvas as unknown as HTMLCanvasElement,
+      ctx: layerCtx as unknown as CanvasRenderingContext2D,
       layerId: activeLayerId,
       primaryColor,
       secondaryColor,
     }
-  }, [activeLayerId, primaryColor, secondaryColor])
+  }, [activeLayerId, activeTool, primaryColor, secondaryColor])
 
   // Convert mouse event to canvas coordinates
   const getCanvasCoords = useCallback((e: React.MouseEvent): { x: number; y: number } => {
@@ -283,6 +317,7 @@ export function CanvasContainer() {
       }
 
       tool.onMouseDown(context, event)
+      if (activeTool === 'brush' || activeTool === 'eraser') repaint()
     }
   }
 
@@ -302,6 +337,7 @@ export function CanvasContainer() {
       if (tool && context) {
         const event = createToolEvent(e)
         tool.onMouseMove(context, event)
+        if (activeTool === 'brush' || activeTool === 'eraser') repaint()
       }
     }
   }
@@ -319,6 +355,9 @@ export function CanvasContainer() {
       if (tool && context) {
         const event = createToolEvent(e)
         tool.onMouseUp(context, event)
+        if ((activeTool === 'brush' || activeTool === 'eraser') && activeLayerId) {
+          refreshLayer(activeLayerId) // miniatura + recomposición + historial
+        }
       }
       setIsDrawing(false)
     }
