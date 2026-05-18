@@ -5,6 +5,23 @@ Todos los cambios notables de este proyecto se documentan en este archivo.
 El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/),
 y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
+## [0.3.5] - 2026-05-18
+
+### Corregido — Duplicar generaba capas con el mismo id
+
+- `createLayer` construye `{ id: uuid, ...partial }`; `duplicateLayer`
+  pasaba `{ ...layer }`, que reinyectaba `layer.id` y **el duplicado
+  heredaba el id del original** → misma entrada del store: ocultar,
+  bloquear o borrar una afectaba a "ambas" (y key de React duplicada).
+- Ahora se omiten `id`/`createdAt`/`modifiedAt` al duplicar (id único)
+  y se copian los píxeles offscreen origen→duplicado (capas sin
+  `imageUrl` ya no salen en blanco).
+
+### Validado
+
+- Playwright e2e: 2 filas tras duplicar, ocultar una NO afecta a la
+  otra, solo una activa, borrar una conserva la otra. 4/4 OK.
+
 ## [0.3.4] - 2026-05-18
 
 ### Corregido — Herramientas del mouse no afectaban al lienzo
