@@ -29,7 +29,13 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
   **decompose real con la key → 3 capas en ~8 s**, contador de uso
   incrementa correctamente.
 
-Detalle: [`docs/API-PUBLICA-V1.md`](docs/API-PUBLICA-V1.md).
+### Documentación
+
+- [`docs/API-PUBLICA-V1.md`](docs/API-PUBLICA-V1.md) — contrato completo
+  del API v1.
+- [`docs/INTEGRACION-CEDULA360.md`](docs/INTEGRACION-CEDULA360.md) — guía
+  de integración para Cédula 360 (planes pagos). La API key se entrega
+  fuera de banda; **no se versiona** (repo público).
 
 ## [0.3.5] - 2026-05-18
 
