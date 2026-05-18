@@ -108,8 +108,13 @@ export const useLayerStore = create<LayerState>((set, get) => ({
     const layer = state.layers[id]
     if (!layer) return null
 
+    // Omitir id/timestamps del original: createLayer hace
+    // `{ id: uuid, ...partial }`, así que si pasáramos `layer.id` el
+    // duplicado heredaría el MISMO id (misma entrada del store → ocultar
+    // una afectaba a ambas).
+    const { id: _omitId, createdAt: _c, modifiedAt: _m, ...rest } = layer
     const duplicated = createLayer({
-      ...layer,
+      ...rest,
       name: `${layer.name} copia`,
       imageData: layer.imageData ? new ImageData(
         new Uint8ClampedArray(layer.imageData.data),

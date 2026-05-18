@@ -2,6 +2,7 @@
 
 import { useCallback, useState } from 'react'
 import { useLayerStore } from '@/stores/useLayerStore'
+import { useEngineStore } from '@/stores/useEngineStore'
 import { EditLayerModal } from '../EditLayerModal'
 
 export function LayersPanel() {
@@ -45,8 +46,16 @@ export function LayersPanel() {
   }
 
   const handleDuplicateLayer = () => {
-    if (activeLayerId) {
-      duplicateLayer(activeLayerId)
+    if (!activeLayerId) return
+    const sourceId = activeLayerId
+    const newId = duplicateLayer(sourceId)
+    if (!newId) return
+    // Copiar los píxeles del canvas offscreen origen al duplicado
+    // (capas pintadas/filtradas sin imageUrl no se recargan solas).
+    const comp = useEngineStore.getState().compositor
+    if (comp) {
+      comp.layerEngine.duplicateLayer(sourceId, newId)
+      useEngineStore.getState().refreshLayer(newId)
     }
   }
 
