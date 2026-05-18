@@ -5,6 +5,32 @@ Todos los cambios notables de este proyecto se documentan en este archivo.
 El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/),
 y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
+## [0.3.4] - 2026-05-18
+
+### Corregido — Herramientas del mouse no afectaban al lienzo
+
+- **Causa raíz**: pincel/borrador dibujaban sobre el canvas visible, que
+  el recompositor borra de inmediato (los trazos no persistían en ninguna
+  capa); la herramienta **Mover** usaba un callback
+  (`setOnTransformChange`) que **nunca se conectaba** en `CanvasContainer`.
+- `createToolContext` ahora enruta el dibujo al **canvas offscreen de la
+  capa activa** (los píxeles persisten y se componen); el cuentagotas
+  lee del lienzo compuesto visible.
+- **Mover** conectado al `transform` de la capa activa + repintado en
+  vivo; pincel/borrador con repintado en vivo por trazo y
+  `refreshLayer` (miniatura + historial) al soltar.
+- **LayersPanel**: botón **eliminar por fila** (borra esa capa exacta,
+  sin depender de cuál esté activa) — la eliminación a nivel de store
+  ya funcionaba; esto resuelve la ambigüedad de UX.
+
+### Validado
+
+- Playwright e2e: pincel dibuja y **persiste tras recomponer**, Mover
+  desplaza la capa (+217 px medidos), eliminar por fila 3→2. 4/4 OK,
+  0 errores de consola.
+
+Detalle: [`docs/EDITOR-FUNCIONAL-COMPLETO-2026-05-17.md`](docs/EDITOR-FUNCIONAL-COMPLETO-2026-05-17.md).
+
 ## [0.3.3] - 2026-05-18
 
 ### Corregido

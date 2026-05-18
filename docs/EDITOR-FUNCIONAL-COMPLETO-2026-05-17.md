@@ -94,6 +94,20 @@ sesión" sin sesión, panel de cuenta con `/admin` + logout con sesión.
   volver a la landing desde el panel).
 - Validado Playwright: 13/13 OK, 0 errores de consola.
 
+## Herramientas del mouse → capa activa (v0.3.4, 2026-05-18)
+
+Las herramientas no afectaban al lienzo: pincel/borrador dibujaban sobre
+el canvas visible (borrado por el recompositor) y **Mover** usaba un
+callback nunca conectado.
+
+- `createToolContext` enruta el dibujo al canvas **offscreen de la capa
+  activa** (persiste + se compone); cuentagotas lee del compuesto.
+- `moveTool.setOnTransformChange` conectado al `transform` de la capa
+  activa; repintado en vivo + `refreshLayer` al soltar.
+- LayersPanel: botón **eliminar por fila**.
+- Validado Playwright: pincel persiste tras recomponer, Mover +217 px,
+  delete por fila 3→2. 4/4 OK.
+
 ## Estado
 
 Build EXIT=0, `clon-photoshop.service` activo, `/`, `/editor`, `/admin`
