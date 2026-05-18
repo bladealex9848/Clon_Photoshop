@@ -5,6 +5,17 @@ Todos los cambios notables de este proyecto se documentan en este archivo.
 El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/),
 y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
+## [0.3.3] - 2026-05-18
+
+### Corregido
+
+- **Scroll bloqueado en landing y /admin**: `globals.css` aplicaba
+  `body { overflow: hidden }` global (para el editor full-screen), lo
+  que impedía hacer scroll en toda la app. Ahora se aplica solo a la
+  ruta del editor (`body:has(.editor-shell)`) y el editor gestiona su
+  propia altura (`h-screen overflow-hidden`). Validado Playwright 6/6:
+  landing scrollea, `/admin` scrollea, editor sigue full-screen.
+
 ## [0.3.2] - 2026-05-18
 
 ### Cambiado — Landing rediseñada (UI/UX de producto)
