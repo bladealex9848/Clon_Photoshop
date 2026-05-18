@@ -19,6 +19,11 @@ html {
 
 body {
   @apply bg-editor-bg text-editor-text font-sans antialiased;
+}
+
+/* El editor es una app de pantalla completa: bloquea el scroll del
+   documento sólo en su ruta (la landing y /admin sí deben hacer scroll). */
+body:has(.editor-shell) {
   overflow: hidden;
 }
 

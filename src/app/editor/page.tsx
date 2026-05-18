@@ -16,7 +16,7 @@ export default function EditorPage() {
   useEffect(() => { initHistory() }, [])
 
   return (
-    <div className="flex flex-col h-full">
+    <div className="editor-shell flex flex-col h-screen overflow-hidden">
       {/* Top Bar */}
       <TopBar />
 
