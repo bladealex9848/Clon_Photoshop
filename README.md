@@ -35,12 +35,16 @@ real de Cédula 360 (`:3081`) + 2FA inline, panel `/admin` con RBAC y
 reCAPTCHA v3 fail-open. El editor permanece **público** (transformación
 aditiva).
 
-> **Estado (2026-05-17): DESPLEGADO Y VALIDADO.** Build corregido
-> (`9463a77`, declaración ambiente `bcryptjs`). Servicios
-> `clon-photoshop` + `clon-photoshop-webhook` activos;
-> `photoshop.cedula360.tech/` y `/admin` → **200**; alianza con
-> credenciales falsas → **401 real** `:3081`; MariaDB `clon_photoshop`
-> con tablas `users`/`sessions`.
+> **Estado (2026-05-17): DESPLEGADO, VALIDADO Y CON IA OPERATIVA.**
+> Build corregido (`9463a77`, declaración ambiente `bcryptjs`).
+> Servicios `clon-photoshop` + `clon-photoshop-webhook` activos;
+> `photoshop.cedula360.tech/`, `/editor`, `/admin`, `/login` → **200**;
+> alianza con credenciales falsas → **401 real** `:3081`; MariaDB
+> `clon_photoshop` con tablas `users`/`sessions`. **IA de capas
+> operativa** (`REPLICATE_API_TOKEN` configurado; decompose real
+> validado: 3 capas en 7.4 s). Favicon y aviso `willReadFrequently`
+> resueltos. Detalle:
+> [`docs/FIX-IA-DECOMPOSE-Y-EDITOR-2026-05-17.md`](docs/FIX-IA-DECOMPOSE-Y-EDITOR-2026-05-17.md).
 
 ### Pendientes
 
@@ -63,8 +67,10 @@ Detalle: [`docs/DESPLIEGUE-VPS-2026-05-16.md`](docs/DESPLIEGUE-VPS-2026-05-16.md
 
 - Node.js 18+
 - npm o yarn
-- Cuenta Supabase (para autenticación)
-- API Key de Replicate (para IA)
+- MariaDB (autenticación local + alianza Cédula 360; Supabase retirado)
+- API Key de Replicate (**obligatoria** para la IA de capas: sin
+  `REPLICATE_API_TOKEN`, `/api/layers/decompose` y `/api/layers/edit`
+  responden `500`)
 
 ## Instalación
 
@@ -84,13 +90,20 @@ cp .env.example .env.local
 ## Variables de Entorno
 
 ```env
-# Supabase
-NEXT_PUBLIC_SUPABASE_URL=tu_supabase_url
-NEXT_PUBLIC_SUPABASE_ANON_KEY=tu_supabase_anon_key
+# Auth local MariaDB + alianza Cédula 360 (ver .env.example)
+CLON_PS_DB_HOST=localhost
+CLON_PS_DB_NAME=clon_photoshop
+CLON_PS_ADMIN_EMAIL=...
+CLON_PS_SESSION_SECRET=...
+CEDULA360_API_BASE=http://localhost:3081
 
-# Replicate (IA)
+# Replicate (IA) — OBLIGATORIO para decompose/edit
 REPLICATE_API_TOKEN=tu_replicate_token
 ```
+
+> Supabase fue retirado en v0.2.0; las variables `NEXT_PUBLIC_SUPABASE_*`
+> ya no se usan. Ver `.env.example` y
+> [`docs/DESPLIEGUE-VPS-2026-05-16.md`](docs/DESPLIEGUE-VPS-2026-05-16.md).
 
 ## Desarrollo
 

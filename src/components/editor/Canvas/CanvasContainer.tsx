@@ -136,7 +136,7 @@ export function CanvasContainer() {
       if (layer.imageUrl && layer.type === 'raster') {
         // Check if this layer's canvas is empty by trying to get it
         const layerCanvas = compositor.layerEngine.getLayerCanvas(layer.id)
-        const ctx = layerCanvas.getContext('2d')
+        const ctx = layerCanvas.getContext('2d', { willReadFrequently: true })
         if (ctx) {
           // Try to get a pixel to check if canvas is empty
           const pixel = ctx.getImageData(0, 0, 1, 1).data

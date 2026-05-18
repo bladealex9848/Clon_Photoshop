@@ -5,6 +5,31 @@ Todos los cambios notables de este proyecto se documentan en este archivo.
 El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/),
 y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
+## [0.2.2] - 2026-05-17
+
+### Corregido
+
+- **IA de capas operativa**: `/api/layers/decompose` devolvía `500`
+  porque faltaba `REPLICATE_API_TOKEN` en el entorno (la ruta aborta si
+  no está). Token configurado server-side; desbloquea también
+  `/api/layers/edit`. Corrida real validada: `success:true`, 3 capas en
+  7.4 s desde `qwen/qwen-image-layered`.
+- **`favicon.ico 404`**: añadido `src/app/icon.svg` (marca "Ps" tema
+  Photoshop) — Next.js App Router lo sirve como favicon.
+- **Aviso `Canvas2D willReadFrequently`**: `{ willReadFrequently: true }`
+  en los 3 contextos que hacen `getImageData` repetido (`LayerEngine`,
+  `CompositeRenderer.renderSingleLayer`, `CanvasContainer`). Acelera
+  eyedropper/composición sin perder GPU en los contextos de dibujo puro.
+
+### Notas
+
+- **Ollama Cloud descartado para separación de capas**: ningún modelo de
+  Ollama Cloud genera imágenes ni hace segmentación/decomposición (son
+  LLM/visión-lenguaje, salida solo texto). La vía correcta es Replicate
+  (`qwen/qwen-image-layered` / `qwen/qwen-image-edit`).
+
+Detalle: [`docs/FIX-IA-DECOMPOSE-Y-EDITOR-2026-05-17.md`](docs/FIX-IA-DECOMPOSE-Y-EDITOR-2026-05-17.md).
+
 ## [0.2.1] - 2026-05-17
 
 ### Corregido

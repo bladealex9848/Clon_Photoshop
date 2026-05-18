@@ -33,7 +33,7 @@ export class LayerEngine {
     let ctx = this.ctxCache.get(layerId)
     if (!ctx) {
       const canvas = this.getLayerCanvas(layerId)
-      ctx = canvas.getContext('2d') as OffscreenCanvasRenderingContext2D
+      ctx = canvas.getContext('2d', { willReadFrequently: true }) as OffscreenCanvasRenderingContext2D
       if (ctx) {
         this.ctxCache.set(layerId, ctx)
       }
