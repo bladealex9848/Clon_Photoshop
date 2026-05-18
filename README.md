@@ -21,6 +21,9 @@ Editor de imágenes estilo Photoshop construido con Next.js 15, React 19 y Canva
 - **Atajos de Teclado**: V, B, E, T, Z, Ctrl+Z/Y, etc.
 - **Autenticación**: cuenta local MariaDB + alianza **Login con Cédula 360**
   (2FA inline). El editor es **público** — no requiere cuenta.
+- **API pública v1**: servicio consumible por otros proyectos con API
+  keys (decompose / edit / transform). Ver
+  [`docs/API-PUBLICA-V1.md`](docs/API-PUBLICA-V1.md)
 
 ## Stack Tecnológico
 

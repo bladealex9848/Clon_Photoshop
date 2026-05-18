@@ -5,6 +5,32 @@ Todos los cambios notables de este proyecto se documentan en este archivo.
 El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/),
 y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
+## [0.4.0] - 2026-05-18
+
+### Agregado — API pública v1 (consumible por otros proyectos)
+
+- **Servicio API con API keys** gestionadas por administradores desde
+  `/admin` → pestaña **API Keys** (SHA-256 en BD, scopes, rate-limit/min,
+  cuota mensual; clave en claro mostrada una sola vez).
+- **Endpoints** `/api/v1`: `health`, `capabilities` (auto-descripción),
+  `usage`, `decompose` (IA capas RGBA), `edit` (IA por texto),
+  `transform` (sharp: resize/rotate/flip/flop/grayscale/negate/blur/
+  sharpen/tint/extend). Auth `Bearer`/`X-API-Key`, CORS habilitado.
+- `src/lib/api/{keys,respond}.ts`, `src/lib/ai/replicate.ts`,
+  `src/app/api/v1/*`, `src/app/api/admin/api-keys/*`.
+- **Primera API key emitida para Cédula 360** (planes pagos): owner
+  `cedula360.tech`, scopes `decompose,edit,transform`, 120 req/min,
+  cuota ilimitada.
+
+### Validado
+
+- E2E: health/capabilities públicos, 401 sin clave, usage con clave,
+  transform (sharp) OK, edit sin prompt → 400 (sin coste IA),
+  **decompose real con la key → 3 capas en ~8 s**, contador de uso
+  incrementa correctamente.
+
+Detalle: [`docs/API-PUBLICA-V1.md`](docs/API-PUBLICA-V1.md).
+
 ## [0.3.5] - 2026-05-18
 
 ### Corregido — Duplicar generaba capas con el mismo id
