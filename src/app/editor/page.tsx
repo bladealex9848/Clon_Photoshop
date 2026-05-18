@@ -5,10 +5,15 @@ import { Toolbar } from '@/components/editor/Toolbar/Toolbar'
 import { CanvasContainer } from '@/components/editor/Canvas/CanvasContainer'
 import { RightPanel } from '@/components/editor/RightPanel/RightPanel'
 import { useKeyboardShortcuts } from '@/hooks'
+import { useEffect } from 'react'
+import { initHistory } from '@/lib/history'
 
 export default function EditorPage() {
   // Initialize keyboard shortcuts
   useKeyboardShortcuts()
+
+  // Initialize history recording (layer-structure snapshots)
+  useEffect(() => { initHistory() }, [])
 
   return (
     <div className="flex flex-col h-full">

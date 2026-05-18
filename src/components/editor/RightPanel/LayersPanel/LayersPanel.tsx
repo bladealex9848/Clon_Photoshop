@@ -14,9 +14,18 @@ export function LayersPanel() {
   const removeLayer = useLayerStore(state => state.removeLayer)
   const duplicateLayer = useLayerStore(state => state.duplicateLayer)
   const updateLayer = useLayerStore(state => state.updateLayer)
+  const groupLayers = useLayerStore(state => state.groupLayers)
+  const reorderLayers = useLayerStore(state => state.reorderLayers)
+  const selectedLayerIds = useLayerStore(state => state.selectedLayerIds)
 
   const [editModalOpen, setEditModalOpen] = useState(false)
   const [layerToEdit, setLayerToEdit] = useState<typeof layers[0] | null>(null)
+  const [dragIndex, setDragIndex] = useState<number | null>(null)
+
+  const handleCreateGroup = () => {
+    const ids = selectedLayerIds.length > 0 ? selectedLayerIds : (activeLayerId ? [activeLayerId] : [])
+    if (ids.length > 0) groupLayers(ids)
+  }
 
   const handleAddNewLayer = () => {
     addLayer({
@@ -103,12 +112,20 @@ export function LayersPanel() {
 
       {/* Layers List */}
       <div className="flex-1 overflow-y-auto">
-        {layers.map((layer) => (
+        {layers.map((layer, index) => (
           <div
             key={layer.id}
+            draggable
+            onDragStart={() => setDragIndex(index)}
+            onDragOver={(e) => e.preventDefault()}
+            onDrop={(e) => {
+              e.preventDefault()
+              if (dragIndex !== null && dragIndex !== index) reorderLayers(dragIndex, index)
+              setDragIndex(null)
+            }}
             className={`flex items-center gap-2 px-2 py-1.5 cursor-pointer border-b border-editor-border/50 ${
               activeLayerId === layer.id ? 'bg-editor-active' : 'hover:bg-editor-surface-hover'
-            }`}
+            } ${dragIndex === index ? 'opacity-50' : ''}`}
             onClick={() => setActiveLayer(layer.id)}
           >
             {/* Visibility */}
@@ -184,6 +201,8 @@ export function LayersPanel() {
         <button
           className="p-1.5 hover:bg-editor-surface-hover rounded transition-colors"
           title="Crear grupo"
+          onClick={handleCreateGroup}
+          disabled={!activeLayerId}
         >
           <span className="material-symbols-outlined text-lg">create_new_folder</span>
         </button>

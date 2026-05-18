@@ -4,6 +4,8 @@ import { useRef, useState, useEffect, useCallback } from 'react'
 import { useLayerStore } from '@/stores/useLayerStore'
 import { useToolStore } from '@/stores/useToolStore'
 import { useViewStore } from '@/stores/useViewStore'
+import { useDocumentStore } from '@/stores/useDocumentStore'
+import { useEngineStore } from '@/stores/useEngineStore'
 import { LayerEngine } from '@/lib/canvas/LayerEngine'
 import { CompositeRenderer } from '@/lib/canvas/CompositeRenderer'
 import {
@@ -30,10 +32,14 @@ export function CanvasContainer() {
   // Stores
   const { getOrderedLayers, activeLayerId, getLayer, addLayer } = useLayerStore()
   const { activeTool, config, primaryColor, secondaryColor, setPrimaryColor } = useToolStore()
-  const { zoom, panX, panY, setZoom, addPan } = useViewStore()
+  const { zoom, panX, panY, setZoom, addPan, showRulers, showGuides, showGrid, gridSize } = useViewStore()
+  const docW = useDocumentStore((s) => s.width)
+  const docH = useDocumentStore((s) => s.height)
+  const guides = useViewStore((s) => s.guides)
+  const registerEngine = useEngineStore((s) => s.register)
 
   const layers = getOrderedLayers()
-  const canvasSize = { width: 1920, height: 1080 }
+  const canvasSize = { width: docW, height: docH }
 
   // Handle file drop
   const handleFile = useCallback(async (file: File) => {
@@ -92,29 +98,54 @@ export function CanvasContainer() {
     }
   }, [handleFile])
 
-  // Initialize canvas engine
+  // Initialize / resize canvas engine. Al cambiar tamaño se preservan
+  // los píxeles de cada capa (snapshot del compositor previo).
   useEffect(() => {
     const canvas = canvasRef.current
     if (!canvas) return
 
-    canvas.width = canvasSize.width
-    canvas.height = canvasSize.height
-
-    layerEngineRef.current = new LayerEngine(canvasSize.width, canvasSize.height)
-    compositorRef.current = new CompositeRenderer(canvas, canvasSize.width, canvasSize.height)
-
-    // Initialize with white background if no layers
-    const ctx = canvas.getContext('2d')
-    if (ctx) {
-      ctx.fillStyle = '#ffffff'
-      ctx.fillRect(0, 0, canvas.width, canvas.height)
-
-      ctx.fillStyle = '#a0a0a0'
-      ctx.font = '32px Inter, sans-serif'
-      ctx.textAlign = 'center'
-      ctx.fillText('Arrastra una imagen o usa IA para crear capas', canvas.width / 2, canvas.height / 2)
+    const ls = useLayerStore.getState()
+    const prevComp = compositorRef.current
+    const snaps = new Map<string, ImageData>()
+    if (prevComp) {
+      for (const id of ls.layerOrder) {
+        const d = prevComp.layerEngine.getLayerImageData(id)
+        if (d) snaps.set(id, d)
+      }
     }
-  }, [canvasSize.width, canvasSize.height])
+
+    canvas.width = docW
+    canvas.height = docH
+
+    const engine = new LayerEngine(docW, docH)
+    const comp = new CompositeRenderer(canvas, docW, docH)
+    layerEngineRef.current = engine
+    compositorRef.current = comp
+    registerEngine(comp)
+
+    // Restaurar píxeles preservados.
+    snaps.forEach((data, id) => {
+      const lctx = comp.layerEngine.getLayerContext(id)
+      if (lctx) { try { lctx.putImageData(data, 0, 0) } catch { /* tamaños distintos: se recorta */ } }
+    })
+
+    const orderedNow = ls.layerOrder.map((id) => ls.layers[id]).filter(Boolean)
+    if (orderedNow.length > 0) {
+      comp.render(orderedNow, ls.layerOrder)
+    } else {
+      const ctx = canvas.getContext('2d')
+      if (ctx) {
+        ctx.fillStyle = '#ffffff'
+        ctx.fillRect(0, 0, canvas.width, canvas.height)
+        ctx.fillStyle = '#a0a0a0'
+        ctx.font = '32px Inter, sans-serif'
+        ctx.textAlign = 'center'
+        ctx.fillText('Arrastra una imagen o usa IA para crear capas', canvas.width / 2, canvas.height / 2)
+      }
+    }
+
+    return () => registerEngine(null)
+  }, [docW, docH, registerEngine])
 
   // Composite layers when they change
   const { layerOrder } = useLayerStore()
@@ -318,47 +349,51 @@ export function CanvasContainer() {
   return (
     <div className="flex-1 flex flex-col overflow-hidden bg-editor-bg">
       {/* Rulers */}
-      <div className="flex">
-        {/* Corner */}
-        <div className="w-6 h-6 bg-editor-surface border-r border-b border-editor-border" />
-        {/* Horizontal Ruler */}
-        <div className="flex-1 h-6 bg-editor-surface border-b border-editor-border relative overflow-hidden">
-          <div
-            className="absolute flex"
-            style={{ transform: `translateX(${panX}px) scale(${zoom}, 1)`, transformOrigin: 'left' }}
-          >
-            {Array.from({ length: Math.ceil(canvasSize.width / 100) + 1 }).map((_, i) => (
-              <div key={i} className="relative" style={{ width: 100 }}>
-                <div className="absolute left-0 h-2 w-px bg-editor-text-muted bottom-0" />
-                <span className="absolute left-1 bottom-0 text-[9px] text-editor-text-muted">
-                  {i * 100}
-                </span>
-              </div>
-            ))}
+      {showRulers && (
+        <div className="flex">
+          {/* Corner */}
+          <div className="w-6 h-6 bg-editor-surface border-r border-b border-editor-border" />
+          {/* Horizontal Ruler */}
+          <div className="flex-1 h-6 bg-editor-surface border-b border-editor-border relative overflow-hidden">
+            <div
+              className="absolute flex"
+              style={{ transform: `translateX(${panX}px) scale(${zoom}, 1)`, transformOrigin: 'left' }}
+            >
+              {Array.from({ length: Math.ceil(canvasSize.width / 100) + 1 }).map((_, i) => (
+                <div key={i} className="relative" style={{ width: 100 }}>
+                  <div className="absolute left-0 h-2 w-px bg-editor-text-muted bottom-0" />
+                  <span className="absolute left-1 bottom-0 text-[9px] text-editor-text-muted">
+                    {i * 100}
+                  </span>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
-      </div>
+      )}
 
       <div className="flex flex-1 overflow-hidden">
         {/* Vertical Ruler */}
-        <div className="w-6 bg-editor-surface border-r border-editor-border relative overflow-hidden">
-          <div
-            className="absolute"
-            style={{ transform: `translateY(${panY}px) scale(1, ${zoom})`, transformOrigin: 'top' }}
-          >
-            {Array.from({ length: Math.ceil(canvasSize.height / 100) + 1 }).map((_, i) => (
-              <div key={i} className="relative" style={{ height: 100 }}>
-                <div className="absolute top-0 w-2 h-px bg-editor-text-muted right-0" />
-                <span
-                  className="absolute right-2 top-1 text-[9px] text-editor-text-muted"
-                  style={{ writingMode: 'vertical-rl', transform: 'rotate(180deg)' }}
-                >
-                  {i * 100}
-                </span>
-              </div>
-            ))}
+        {showRulers && (
+          <div className="w-6 bg-editor-surface border-r border-editor-border relative overflow-hidden">
+            <div
+              className="absolute"
+              style={{ transform: `translateY(${panY}px) scale(1, ${zoom})`, transformOrigin: 'top' }}
+            >
+              {Array.from({ length: Math.ceil(canvasSize.height / 100) + 1 }).map((_, i) => (
+                <div key={i} className="relative" style={{ height: 100 }}>
+                  <div className="absolute top-0 w-2 h-px bg-editor-text-muted right-0" />
+                  <span
+                    className="absolute right-2 top-1 text-[9px] text-editor-text-muted"
+                    style={{ writingMode: 'vertical-rl', transform: 'rotate(180deg)' }}
+                  >
+                    {i * 100}
+                  </span>
+                </div>
+              ))}
+            </div>
           </div>
-        </div>
+        )}
 
         {/* Canvas Area */}
         <div
@@ -377,6 +412,7 @@ export function CanvasContainer() {
         >
           <div
             style={{
+              position: 'relative',
               transform: `translate(${panX}px, ${panY}px) scale(${zoom})`,
               transformOrigin: 'center',
               boxShadow: '0 4px 20px rgba(0,0,0,0.5)',
@@ -387,6 +423,28 @@ export function CanvasContainer() {
               className="bg-white"
               style={{ display: 'block' }}
             />
+            {showGrid && (
+              <div
+                className="absolute inset-0 pointer-events-none"
+                style={{
+                  backgroundImage:
+                    'linear-gradient(to right, rgba(120,120,160,0.35) 1px, transparent 1px), linear-gradient(to bottom, rgba(120,120,160,0.35) 1px, transparent 1px)',
+                  backgroundSize: `${gridSize}px ${gridSize}px`,
+                }}
+              />
+            )}
+            {showGuides &&
+              guides.map((g) => (
+                <div
+                  key={g.id}
+                  className="absolute bg-cyan-400/70 pointer-events-none"
+                  style={
+                    g.orientation === 'vertical'
+                      ? { left: g.position, top: 0, width: 1, height: '100%' }
+                      : { top: g.position, left: 0, height: 1, width: '100%' }
+                  }
+                />
+              ))}
           </div>
         </div>
       </div>

@@ -7,7 +7,13 @@ Editor de imágenes estilo Photoshop construido con Next.js 15, React 19 y Canva
 ## Características
 
 - **Editor Profesional**: Interfaz de 4 zonas (TopBar, Toolbar, Canvas, RightPanel)
-- **Sistema de Capas**: Visibilidad, opacidad, modos de mezcla, grupos
+  — todos los menús, herramientas y paneles funcionales (validado e2e
+  con Playwright, 22/22 OK). Ver
+  [`docs/EDITOR-FUNCIONAL-COMPLETO-2026-05-17.md`](docs/EDITOR-FUNCIONAL-COMPLETO-2026-05-17.md)
+- **Filtros y transformaciones**: invertir, escala de grises, desenfocar,
+  enfocar, rotar 90°, voltear, escalar (sobre la capa activa / selección)
+- **Sistema de Capas**: Visibilidad, opacidad, modos de mezcla, grupos,
+  reordenar drag & drop, fusionar/aplanar
 - **10 Herramientas**: Pincel, Borrador, Mover, Cuentagotas, Texto, Selección, Zoom, Mano, Recortar, Lazo
 - **IA Integrada**: Separación automática de imágenes en capas (Replicate API)
 - **Edición de Capas con IA**: Modifica capas existentes usando prompts de texto

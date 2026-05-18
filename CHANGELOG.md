@@ -5,6 +5,42 @@ Todos los cambios notables de este proyecto se documentan en este archivo.
 El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/),
 y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
+## [0.3.0] - 2026-05-17
+
+### Agregado / Corregido — Editor 100% funcional
+
+- **Bug raíz**: `Toolbar` usaba estado local en vez de `useToolStore` —
+  cambiar de herramienta no tenía efecto. Conectado al store (incl.
+  selectores de color FG/BG nativos y swap).
+- **Stores nuevos**: `useEngineStore` (puente UI↔motor de canvas),
+  `useDocumentStore` (tamaño/nombre doc), `useSelectionStore` (selección
+  bbox). `lib/canvas/ops.ts` (filtros/transformaciones de píxeles),
+  `lib/history.ts` (undo/redo/jump reales sobre estructura de capas).
+- **Todos los menús cableados**: Archivo, Editar (copiar/cortar/pegar,
+  deshacer/rehacer), Imagen (rotar/voltear/tamaño), Capa (duplicar/
+  eliminar/agrupar/desagrupar/fusionar/aplanar), Selección, Filtro
+  (blur/sharpen/grayscale/invert), Vista (reglas/guías/cuadrícula con
+  overlay real + marca ✓), Ayuda (modales).
+- **TopBar**: botón Exportar con menú (PNG/ZIP/.photoclone) + zoom en
+  vivo clicable.
+- **Paneles**: Propiedades enlazado en vivo (X/Y capa, W/H documento,
+  opacidad); Historial real con `jumpToAction`; Capas con "Crear grupo"
+  + reordenar drag & drop.
+- **CanvasContainer**: registra el motor, tamaño dinámico con
+  preservación de píxeles, reglas/guías/cuadrícula reactivas.
+
+### Validado
+
+- **Playwright e2e sobre build de producción: 22/22 verificaciones
+  funcionales OK, 0 errores de consola.**
+
+### Limitaciones documentadas
+
+- Historial = estructura de capas (no píxeles de pincel/filtro).
+- Selección = bbox rectangular (no máscara freeform).
+
+Detalle: [`docs/EDITOR-FUNCIONAL-COMPLETO-2026-05-17.md`](docs/EDITOR-FUNCIONAL-COMPLETO-2026-05-17.md).
+
 ## [0.2.2] - 2026-05-17
 
 ### Corregido
