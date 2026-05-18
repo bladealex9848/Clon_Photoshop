@@ -28,6 +28,15 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
   LLM/visión-lenguaje, salida solo texto). La vía correcta es Replicate
   (`qwen/qwen-image-layered` / `qwen/qwen-image-edit`).
 
+### Validado
+
+- **Webhook auto-deploy probado end-to-end**: POST firmado HMAC SHA256 →
+  `200 {"status":"Deploy iniciado"}` → pipeline completo
+  (`git reset --hard` + `npm install` + `npm run build` + restart) en
+  ~22 s, servicio `active`, endpoints `200`. Firma inválida → `401`
+  correcto. Único pendiente: registrar el webhook en GitHub
+  (Settings → Webhooks).
+
 Detalle: [`docs/FIX-IA-DECOMPOSE-Y-EDITOR-2026-05-17.md`](docs/FIX-IA-DECOMPOSE-Y-EDITOR-2026-05-17.md).
 
 ## [0.2.1] - 2026-05-17

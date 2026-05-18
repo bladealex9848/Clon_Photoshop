@@ -49,9 +49,11 @@ aditiva).
 ### Pendientes
 
 - **Operador — registrar el webhook de GitHub**
-  (`https://photoshop.cedula360.tech/webhook`, HMAC SHA256; secreto
-  server-side, no documentado). Hasta registrarlo, `git push` no
-  dispara auto-deploy.
+  (`https://photoshop.cedula360.tech/webhook`, content-type
+  `application/json`, secreto HMAC SHA256 server-side, evento `push`).
+  El webhook ya está **probado end-to-end** server-side (deploy completo
+  en ~22 s, firma inválida → 401); solo falta crearlo en
+  Settings → Webhooks. Hasta entonces, `git push` no auto-despliega.
 - **Operador**: añadir `photoshop.cedula360.tech` a los dominios de la
   llave reCAPTCHA de Cédula 360 en la consola de Google (mitigado por
   fail-open `0.3`).
