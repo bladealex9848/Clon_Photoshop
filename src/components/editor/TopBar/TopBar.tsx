@@ -1,7 +1,9 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
+import Link from 'next/link'
 import { MenuBar } from './MenuBar'
+import { useAuth } from '@/hooks/useAuth'
 import { useViewStore } from '@/stores/useViewStore'
 import { useLayerStore } from '@/stores/useLayerStore'
 import { useDocumentStore } from '@/stores/useDocumentStore'
@@ -16,10 +18,16 @@ export function TopBar() {
   const docW = useDocumentStore((s) => s.width)
   const docH = useDocumentStore((s) => s.height)
   const [open, setOpen] = useState(false)
+  const [acctOpen, setAcctOpen] = useState(false)
   const ref = useRef<HTMLDivElement>(null)
+  const acctRef = useRef<HTMLDivElement>(null)
+  const { user, loading, signOut, isAuthenticated } = useAuth()
 
   useEffect(() => {
-    const h = (e: MouseEvent) => { if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false) }
+    const h = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false)
+      if (acctRef.current && !acctRef.current.contains(e.target as Node)) setAcctOpen(false)
+    }
     document.addEventListener('mousedown', h)
     return () => document.removeEventListener('mousedown', h)
   }, [])
@@ -52,16 +60,61 @@ export function TopBar() {
 
   return (
     <div className="h-12 bg-editor-surface border-b border-editor-border flex items-center px-2">
-      <div className="flex items-center gap-2 px-3 mr-4">
+      <Link
+        href="/"
+        className="flex items-center gap-2 px-3 mr-4 rounded hover:bg-editor-surface-hover transition-colors py-1"
+        title="Volver a la página de inicio"
+      >
         <span className="material-symbols-outlined text-editor-accent text-xl">layers</span>
         <span className="text-sm font-semibold text-editor-text-bright">PhotoClone</span>
-      </div>
+      </Link>
 
       <MenuBar />
 
       <div className="flex-1" />
 
       <div className="flex items-center gap-2">
+        {/* Cuenta / sesión */}
+        <div ref={acctRef} className="relative">
+          {loading ? (
+            <span className="text-xs text-editor-text-muted px-2">…</span>
+          ) : isAuthenticated ? (
+            <>
+              <button
+                className="flex items-center gap-1.5 px-2 py-1 rounded text-sm hover:bg-editor-surface-hover transition-colors"
+                onClick={() => setAcctOpen((o) => !o)}
+                title="Cuenta"
+              >
+                <span className="w-6 h-6 rounded-full bg-editor-accent text-white text-xs flex items-center justify-center font-semibold">
+                  {(user?.name || user?.email || '?').charAt(0).toUpperCase()}
+                </span>
+                <span className="hidden sm:inline max-w-[140px] truncate">{user?.name || user?.email}</span>
+                <span className="material-symbols-outlined text-base">expand_more</span>
+              </button>
+              {acctOpen && (
+                <div className="absolute top-full right-0 mt-1 min-w-56 bg-editor-surface border border-editor-border rounded-lg shadow-xl py-1 z-50">
+                  <div className="px-4 py-2 border-b border-editor-border">
+                    <p className="text-sm text-editor-text-bright truncate">{user?.name}</p>
+                    <p className="text-xs text-editor-text-muted truncate">{user?.email}</p>
+                    <p className="text-[10px] text-editor-text-muted mt-0.5 uppercase">{user?.role}</p>
+                  </div>
+                  <Link href="/admin" className="block w-full px-4 py-2 text-sm text-left hover:bg-editor-surface-hover">
+                    Panel administrativo
+                  </Link>
+                  <button className="w-full px-4 py-2 text-sm text-left hover:bg-editor-surface-hover text-red-400" onClick={signOut}>
+                    Cerrar sesión
+                  </button>
+                </div>
+              )}
+            </>
+          ) : (
+            <Link href="/login" className="flex items-center gap-1.5 px-3 py-1.5 text-sm rounded border border-editor-border hover:bg-editor-surface-hover transition-colors">
+              <span className="material-symbols-outlined text-base">login</span>
+              Iniciar sesión
+            </Link>
+          )}
+        </div>
+
         <button
           className="text-xs text-editor-text-muted px-2 hover:text-editor-text"
           onClick={() => setZoom(1)}

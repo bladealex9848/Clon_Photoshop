@@ -5,6 +5,28 @@ Todos los cambios notables de este proyecto se documentan en este archivo.
 El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/),
 y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
+## [0.3.1] - 2026-05-18
+
+### Agregado — Navegación y sesión en el editor
+
+- **Logo → landing**: el logo "PhotoClone" del TopBar ahora es un enlace
+  a `/` (antes no navegaba a ningún sitio).
+- **Indicador de sesión** en el TopBar del editor:
+  - Sin sesión → botón "Iniciar sesión" (`/login`).
+  - Con sesión → avatar + nombre y menú desplegable con datos del usuario
+    (nombre, email, rol), enlace al **Panel administrativo** (`/admin`)
+    y "Cerrar sesión".
+- Resuelve "no se sabe quién inició sesión" y la falta de retorno a la
+  landing / acceso al área administrativa desde el editor.
+
+### Validado
+
+- Playwright e2e (anónimo + autenticado): logo navega a la landing,
+  "Iniciar sesión" visible sin sesión, panel de cuenta con enlace
+  `/admin` y logout con sesión activa.
+
+Detalle: [`docs/EDITOR-FUNCIONAL-COMPLETO-2026-05-17.md`](docs/EDITOR-FUNCIONAL-COMPLETO-2026-05-17.md).
+
 ## [0.3.0] - 2026-05-17
 
 ### Agregado / Corregido — Editor 100% funcional

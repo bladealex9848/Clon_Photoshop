@@ -70,7 +70,20 @@ zoom en vivo (125% → reset 100%).
 - **Redimensionar lienzo**: preserva píxeles por snapshot; si se reduce,
   se recorta (semántica de "tamaño de lienzo").
 
+## Navegación y sesión en el editor (v0.3.1, 2026-05-18)
+
+Faltaba volver a la landing y saber quién había iniciado sesión:
+
+- **Logo del TopBar** → `Link` a `/` (landing).
+- **Indicador de cuenta** (derecha del TopBar) vía `useAuth`:
+  - Sin sesión → botón "Iniciar sesión" (`/login`).
+  - Con sesión → avatar + nombre + menú (nombre/email/rol, enlace
+    **Panel administrativo** `/admin`, "Cerrar sesión" → `signOut`).
+
+Validado Playwright (anónimo + autenticado): logo→landing, "Iniciar
+sesión" sin sesión, panel de cuenta con `/admin` + logout con sesión.
+
 ## Estado
 
-Build EXIT=0 (editor 57.5 kB), `clon-photoshop.service` activo,
+Build EXIT=0 (editor 58.1 kB), `clon-photoshop.service` activo,
 `/editor` 200. Probado con Playwright headless contra `127.0.0.1:3024`.
